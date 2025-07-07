@@ -25,7 +25,7 @@ class HomePage extends StatelessWidget {
         child: GridView.builder(
           itemCount: menuItems.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // 2 kolom
+            crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
             childAspectRatio: 1,
@@ -39,6 +39,30 @@ class HomePage extends StatelessWidget {
                 }
                 if (item.title == 'Kalori Tracker') {
                   Navigator.pushNamed(context, '/kalori');
+                }
+                if (item.title == 'Kalkulator Makanan') {
+                  Navigator.pushNamed(context, '/kalkulator');
+                }
+                if (item.title == 'Pengingat Olahraga') {
+                  Navigator.pushNamed(context, '/olahraga');
+                }
+                if (item.title == 'Video Edukasi') {
+                  Navigator.pushNamed(context, '/video-edukasi');
+                }
+                if (item.title == 'Poster DM') {
+                  Navigator.pushNamed(context, '/poster');
+                }
+                if (item.title == 'Mitos/Fakta') {
+                  Navigator.pushNamed(context, '/mitos');
+                }
+                if (item.title == 'Berita DM') {
+                  Navigator.pushNamed(context, '/berita');
+                }
+                if (item.title == 'Manajemen Luka') {
+                  Navigator.pushNamed(context, '/manajemen-luka');
+                }
+                if (item.title == 'Panduan Terapi') {
+                  Navigator.pushNamed(context, '/panduan');
                 }
               },
 
