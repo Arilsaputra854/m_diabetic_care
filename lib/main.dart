@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:m_diabetic_care/view/edukasi_berita_page.dart';
+import 'package:m_diabetic_care/view/forgot_password.dart';
 import 'package:m_diabetic_care/view/home_page.dart';
 import 'package:m_diabetic_care/view/kalkulator_page.dart';
 import 'package:m_diabetic_care/view/kalori_tracker_page.dart';
 import 'package:m_diabetic_care/view/login_page.dart';
 import 'package:m_diabetic_care/view/manajemen_luka_page.dart';
 import 'package:m_diabetic_care/view/mitos_fakta_page.dart';
+import 'package:m_diabetic_care/view/otp_verification_page.dart';
 import 'package:m_diabetic_care/view/panduan_terapi_page.dart';
 import 'package:m_diabetic_care/view/pengingat_olahraga_page.dart';
 import 'package:m_diabetic_care/view/poster_page.dart';
@@ -32,7 +34,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/home': (context) => const HomePage(),
+        '/home': (context) => const HomePageV2(),
         '/reminder': (context) => const ReminderObatPage(),
         '/kalori': (context) => const KaloriTrackerPage(),
         '/kalkulator': (context) => const KalkulatorPage(),
@@ -43,6 +45,8 @@ class MyApp extends StatelessWidget {
         '/berita': (context) => const EdukasiBeritaPage(),
         '/manajemen-luka': (context) => const ManajemenLukaPage(),
         '/panduan': (context) => const PanduanTerapiPage(),
+        '/forgot-password': (context) => const ForgotPasswordPage(),
+        '/otp-verification': (context) => const OtpVerificationPage(),
 
 
       },

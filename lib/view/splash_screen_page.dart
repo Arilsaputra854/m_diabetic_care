@@ -21,15 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Text(
-          'M-DIABETIC CARE',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.teal,
-            letterSpacing: 1.5,
-          ),
-        ),
+        child: Image.asset("assets/logo/logo.png")
       ),
     );
   }
