@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/view/change_password_setting.dart';
 import 'package:m_diabetic_care/view/edukasi_berita_page.dart';
+import 'package:m_diabetic_care/view/fakta_mitos_page.dart';
 import 'package:m_diabetic_care/view/forgot_password.dart';
 import 'package:m_diabetic_care/view/home_page.dart';
 import 'package:m_diabetic_care/view/kalkulator_page.dart';
 import 'package:m_diabetic_care/view/kalori_tracker_page.dart';
 import 'package:m_diabetic_care/view/login_page.dart';
 import 'package:m_diabetic_care/view/manajemen_luka_page.dart';
-import 'package:m_diabetic_care/view/mitos_fakta_page.dart';
+import 'package:m_diabetic_care/view/obat_page.dart';
 import 'package:m_diabetic_care/view/otp_verification_page.dart';
 import 'package:m_diabetic_care/view/panduan_terapi_page.dart';
 import 'package:m_diabetic_care/view/pengingat_olahraga_page.dart';
 import 'package:m_diabetic_care/view/poster_page.dart';
+import 'package:m_diabetic_care/view/profile_page.dart';
 import 'package:m_diabetic_care/view/register_page.dart';
 import 'package:m_diabetic_care/view/reminder_obat_page.dart';
+import 'package:m_diabetic_care/view/setting_page.dart';
 import 'package:m_diabetic_care/view/splash_screen_page.dart';
+import 'package:m_diabetic_care/view/tambah_obat_page.dart';
 import 'package:m_diabetic_care/view/view_edukasi_page.dart';
 
 void main() {
@@ -47,8 +52,10 @@ class MyApp extends StatelessWidget {
         '/panduan': (context) => const PanduanTerapiPage(),
         '/forgot-password': (context) => const ForgotPasswordPage(),
         '/otp-verification': (context) => const OtpVerificationPage(),
-
-
+        '/change-password-setting': (context) => const ChangePasswordSetting(),
+        '/setting' : (context) => const SettingPage(),
+        '/profile' : (context) => const ProfilePage(),
+        '/fakta-mitos' : (context) => const MitosFaktaPage(),    
       },
     );
   }
