@@ -4,6 +4,7 @@ import 'package:m_diabetic_care/view/edukasi_berita_page.dart';
 import 'package:m_diabetic_care/view/fakta_mitos_page.dart';
 import 'package:m_diabetic_care/view/forgot_password.dart';
 import 'package:m_diabetic_care/view/home_page.dart';
+import 'package:m_diabetic_care/view/input_makanan_page.dart';
 import 'package:m_diabetic_care/view/kalkulator_page.dart';
 import 'package:m_diabetic_care/view/kalori_tracker_page.dart';
 import 'package:m_diabetic_care/view/login_page.dart';
@@ -18,11 +19,21 @@ import 'package:m_diabetic_care/view/register_page.dart';
 import 'package:m_diabetic_care/view/reminder_obat_page.dart';
 import 'package:m_diabetic_care/view/setting_page.dart';
 import 'package:m_diabetic_care/view/splash_screen_page.dart';
-import 'package:m_diabetic_care/view/tambah_obat_page.dart';
 import 'package:m_diabetic_care/view/view_edukasi_page.dart';
+import 'package:m_diabetic_care/viewmodel/login_viewmodel.dart';
+import 'package:m_diabetic_care/viewmodel/register_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => RegisterViewModel()),
+        ChangeNotifierProvider(create: (_) => LoginViewmodel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -56,6 +67,7 @@ class MyApp extends StatelessWidget {
         '/setting' : (context) => const SettingPage(),
         '/profile' : (context) => const ProfilePage(),
         '/fakta-mitos' : (context) => const MitosFaktaPage(),    
+        '/input-makanan': (context) => const InputMakananPage(),
       },
     );
   }

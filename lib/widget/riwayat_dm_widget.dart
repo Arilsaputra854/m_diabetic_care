@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 
 class RiwayatDMKeluargaDropdown extends StatefulWidget {
-  const RiwayatDMKeluargaDropdown({super.key});
+  final void Function(bool) onChanged;
+
+  const RiwayatDMKeluargaDropdown({super.key, required this.onChanged});
 
   @override
   State<RiwayatDMKeluargaDropdown> createState() =>
       _RiwayatDMKeluargaDropdownState();
 }
 
-class _RiwayatDMKeluargaDropdownState extends State<RiwayatDMKeluargaDropdown> {
+class _RiwayatDMKeluargaDropdownState
+    extends State<RiwayatDMKeluargaDropdown> {
   final List<String> options = [
+    'Tidak Ada',
     'Diabetes Melitus',
     'Diabetes Gestasional',
   ];
@@ -18,6 +22,7 @@ class _RiwayatDMKeluargaDropdownState extends State<RiwayatDMKeluargaDropdown> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFEBF0FF)),
@@ -29,7 +34,7 @@ class _RiwayatDMKeluargaDropdownState extends State<RiwayatDMKeluargaDropdown> {
           value: selectedOption,
           hint: Row(
             children: const [
-              Icon(Icons.access_time, color: Color(0xFF9098B1)),
+              Icon(Icons.family_restroom, color: Color(0xFF9098B1)),
               SizedBox(width: 8),
               Text(
                 'Riwayat DM Keluarga',
@@ -56,6 +61,7 @@ class _RiwayatDMKeluargaDropdownState extends State<RiwayatDMKeluargaDropdown> {
           onChanged: (value) {
             setState(() {
               selectedOption = value;
+              widget.onChanged(value != 'Tidak Ada');
             });
           },
         ),

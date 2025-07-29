@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/services/api_service.dart';
+import 'package:m_diabetic_care/viewmodel/login_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      
+
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -24,19 +27,12 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Logo
-                Image.asset(
-                  'assets/logo/logo.png',
-                  width: 250,
-                  height: 250,
-                ),
+                Image.asset('assets/logo/logo.png', width: 250, height: 250),
                 const SizedBox(height: 12),
 
                 const Text(
                   'Selamat Datang!',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
                 const SizedBox(height: 24),
 
@@ -70,15 +66,55 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       elevation: 4,
                     ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/home');
+                    onPressed: () async {
+                      final authVM = Provider.of<LoginViewmodel>(
+                        context,
+                        listen: false,
+                      );
+                      final email = emailController.text.trim();
+                      final password = passwordController.text.trim();
+
+                      if (email.isEmpty || password.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Email dan password wajib diisi'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      final success = await authVM.login(
+                        email: email,
+                        password: password,
+                      );
+
+                      if (success) {
+                        Navigator.pushReplacementNamed(context, '/home');
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Login gagal! Cek email atau password',
+                            ),
+                          ),
+                        );
+                      }
                     },
-                    child: const Text(
-                      'Masuk',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+
+                    child: Consumer<LoginViewmodel>(
+                      builder: (context, vm, _) {
+                        return vm.isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text(
+                              'Masuk',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            );
+                      },
                     ),
                   ),
                 ),
