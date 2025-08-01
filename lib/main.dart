@@ -17,10 +17,12 @@ import 'package:m_diabetic_care/view/poster_page.dart';
 import 'package:m_diabetic_care/view/profile_page.dart';
 import 'package:m_diabetic_care/view/register_page.dart';
 import 'package:m_diabetic_care/view/reminder_obat_page.dart';
+import 'package:m_diabetic_care/view/reset_password_page.dart';
 import 'package:m_diabetic_care/view/setting_page.dart';
 import 'package:m_diabetic_care/view/splash_screen_page.dart';
 import 'package:m_diabetic_care/view/view_edukasi_page.dart';
 import 'package:m_diabetic_care/viewmodel/login_viewmodel.dart';
+import 'package:m_diabetic_care/viewmodel/myths_facts_view_model.dart';
 import 'package:m_diabetic_care/viewmodel/register_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +32,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => RegisterViewModel()),
         ChangeNotifierProvider(create: (_) => LoginViewmodel()),
+        ChangeNotifierProvider(create: (_) => MythsFactsViewModel()),
       ],
       child: const MyApp(),
     ),
@@ -68,6 +71,7 @@ class MyApp extends StatelessWidget {
         '/profile' : (context) => const ProfilePage(),
         '/fakta-mitos' : (context) => const MitosFaktaPage(),    
         '/input-makanan': (context) => const InputMakananPage(),
+        '/reset-password': (context) => const ResetPasswordPage(),
       },
     );
   }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/view/edukasi_berita_page.dart';
+import 'package:m_diabetic_care/view/edukasi_poster_page.dart';
+import 'package:m_diabetic_care/view/edukasi_video_page.dart';
 
 class EdukasiPage extends StatelessWidget {
   const EdukasiPage({super.key});
@@ -14,15 +17,21 @@ class EdukasiPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _sectionTitle("Memahami Diabetes"),
+          _sectionTitle("Berita"),
           _cardItem(
-            icon: Icons.lightbulb_outline,
-            title: "Apa itu Diabetes Tipe 2 ?",
+            icon: Icons.newspaper,
+            title: "Berita & Artikel Terkini",
             subtitle:
-                "Ini adalah kondisi di mana tubuh anda tidak menggunakan insulin dengan benar.",
+                "Dapatkan informasi terbaru seputar diabetes dari sumber tepercaya.",
             buttonLabel: "Baca",
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EdukasiBeritaPage()),
+              );
+            },
           ),
+
           _sectionTitle("Fakta & Mitos"),
           _cardItem(
             icon: Icons.question_mark,
@@ -38,10 +47,16 @@ class EdukasiPage extends StatelessWidget {
           _cardItem(
             icon: Icons.play_circle,
             title: "Video",
-            subtitle: "Video seputar diabetes yang menjelaskandiabetes...",
+            subtitle: "Video seputar diabetes yang menjelaskan...",
             buttonLabel: "Tonton",
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EdukasiVideoPage()),
+              );
+            },
           ),
+
           _sectionTitle("Poster"),
           _cardItem(
             icon: Icons.image,
@@ -49,7 +64,12 @@ class EdukasiPage extends StatelessWidget {
             subtitle:
                 "Poster edukasi tentang mitos dan fakta seputar diabetes...",
             buttonLabel: "Lihat",
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EdukasiPosterPage()),
+              );
+            },
           ),
         ],
       ),

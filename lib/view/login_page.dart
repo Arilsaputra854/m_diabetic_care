@@ -13,6 +13,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -157,37 +158,49 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  /// Custom TextField builder
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
     required IconData icon,
     bool obscureText = false,
   }) {
+    final isPassword = obscureText;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
-        obscureText: obscureText,
-        style: const TextStyle(color: Colors.black), // warna teks user
+        obscureText: isPassword ? !_isPasswordVisible : false,
+        style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
           hintText: hintText,
           prefixIcon: Icon(icon, color: Color(0xff9098B1)),
+          suffixIcon:
+              isPassword
+                  ? IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: const Color(0xff9098B1),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  )
+                  : null,
           hintStyle: const TextStyle(color: Color(0xff9098B1)),
           filled: true,
           fillColor: Colors.white,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFFEBF0FF), // warna saat belum fokus
-            ),
+            borderSide: const BorderSide(color: Color(0xFFEBF0FF)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFFB4C2F8), // warna saat fokus (lebih gelap)
-              width: 2,
-            ),
+            borderSide: const BorderSide(color: Color(0xFFB4C2F8), width: 2),
           ),
         ),
       ),

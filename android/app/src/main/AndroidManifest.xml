@@ -2,8 +2,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="m_diabetic_care"
-        android:name="${applicationName}"
+        android:label="M-Diabetic Care"
+        android:name="${applicationName}"        
+        android:usesCleartextTraffic="true"        
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

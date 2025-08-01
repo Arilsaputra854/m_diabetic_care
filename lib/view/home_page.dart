@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/model/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:m_diabetic_care/view/edukasi_page.dart';
 import 'package:m_diabetic_care/view/imt_page.dart';
 import 'package:m_diabetic_care/view/makan_page.dart';
@@ -15,6 +18,7 @@ class HomePageV2 extends StatefulWidget {
 
 class _HomePageV2State extends State<HomePageV2> {
   int _selectedIndex = 0;
+  UserModel? currentUser;
 
   List<Map<String, dynamic>> obatList = [
     {
@@ -46,31 +50,32 @@ class _HomePageV2State extends State<HomePageV2> {
     },
   ];
 
-  void _goToPengobatan() {
-    setState(() {
-      _selectedIndex = 5;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
   }
 
-  void _goToTambahObat() {
-    setState(() {
-      _selectedIndex = 6;
-    });
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user');
+    if (userJson != null) {
+      setState(() {
+        currentUser = UserModel.fromJson(jsonDecode(userJson));
+      });
+    }
   }
 
-  void _goToHomeContent() {
-    setState(() {
-      _selectedIndex = 0;
-    });
-  }
+  void _goToPengobatan() => setState(() => _selectedIndex = 5);
+  void _goToTambahObat() => setState(() => _selectedIndex = 6);
+  void _goToHomeContent() => setState(() => _selectedIndex = 0);
 
   @override
   Widget build(BuildContext context) {
     Widget bodyContent;
-
     switch (_selectedIndex) {
       case 0:
-        bodyContent = HomeContent(onTambahObat: _goToPengobatan);
+        bodyContent = HomeContent(user: currentUser, onTambahObat: _goToPengobatan);
         break;
       case 1:
         bodyContent = const EdukasiPage();
@@ -79,27 +84,22 @@ class _HomePageV2State extends State<HomePageV2> {
         bodyContent = const IMTPage();
         break;
       case 3:
-        bodyContent = const MakanPage(); // bisa diganti
+        bodyContent = const MakanPage();
         break;
       case 4:
-        bodyContent = const OlahragaPage(); // bisa diganti
+        bodyContent = const OlahragaPage();
         break;
       case 5:
         bodyContent = PengobatanPage(
           obatList: obatList,
           onTambahObat: _goToTambahObat,
           onBack: _goToHomeContent,
-          onDelete: (index) {
-            setState(() {
-              obatList.removeAt(index);
-            });
-          },
+          onDelete: (index) => setState(() => obatList.removeAt(index)),
         );
-
         break;
       case 6:
         bodyContent = TambahObatPage(
-          onBack: () => setState(() => _selectedIndex = 1),
+          onBack: _goToPengobatan,
           onSimpan: (nama, waktu) {
             setState(() {
               obatList.add({
@@ -111,41 +111,30 @@ class _HomePageV2State extends State<HomePageV2> {
                 'labelColor': null,
                 'textColor': Colors.grey,
               });
-              _selectedIndex = 1; // kembali ke pengobatan
+              _selectedIndex = 5;
             });
           },
         );
-
         break;
       default:
-        bodyContent = HomeContent(onTambahObat: _goToPengobatan);
+        bodyContent = HomeContent(user: currentUser, onTambahObat: _goToPengobatan);
     }
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(child: bodyContent),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex > 4 ? 0 : _selectedIndex, // reset ke Home
+        currentIndex: _selectedIndex > 4 ? 0 : _selectedIndex,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.teal[800],
         unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book),
-            label: 'Edukasi',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.monitor_weight),
-            label: 'IMT',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.alarm), label: 'Alarm'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Untukmu'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Edukasi'),
+          BottomNavigationBarItem(icon: Icon(Icons.monitor_weight), label: 'IMT'),
+          BottomNavigationBarItem(icon: Icon(Icons.fastfood_sharp), label: 'Makanan'),
+          BottomNavigationBarItem(icon: Icon(Icons.sports_gymnastics), label: 'Latihan'),
         ],
       ),
     );
@@ -153,9 +142,10 @@ class _HomePageV2State extends State<HomePageV2> {
 }
 
 class HomeContent extends StatelessWidget {
+  final UserModel? user;
   final VoidCallback onTambahObat;
 
-  const HomeContent({super.key, required this.onTambahObat});
+  const HomeContent({super.key, required this.user, required this.onTambahObat});
 
   @override
   Widget build(BuildContext context) {
@@ -189,14 +179,14 @@ class HomeContent extends StatelessWidget {
           },
         ),
         const SizedBox(width: 12),
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hi, Kezia',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              'Hi, ${user?.fullname ?? 'User'}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Text(
+            const Text(
               'Tetap semangat menjaga kesehatanmu!',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
@@ -207,6 +197,7 @@ class HomeContent extends StatelessWidget {
   }
 
   Widget _buildCardGulaDarah() {
+    final gula = user?.glucoseLevel != null ? '${user!.glucoseLevel} mg/dL' : '-';
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -216,23 +207,17 @@ class HomeContent extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const Text('Gula Darah', style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(
-                  'Gula Darah',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  gula,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  '-',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Cek terakhir: Belum ada data',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                const SizedBox(height: 4),
+                const Text('Cek terakhir: -', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),
@@ -241,9 +226,7 @@ class HomeContent extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1D5C63),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('Tambah Data'),
           ),
@@ -263,10 +246,7 @@ class HomeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Asupan Kalori Harian',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          const Text('Asupan Kalori Harian', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: 0.45,
@@ -291,10 +271,7 @@ class HomeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Pengobatan selanjutnya',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          const Text('Pengobatan selanjutnya', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(12),
@@ -320,15 +297,13 @@ class HomeContent extends StatelessWidget {
             width: double.infinity,
             height: 44,
             child: ElevatedButton.icon(
-              onPressed: onTambahObat, // ← diperbaiki
+              onPressed: onTambahObat,
               icon: const Icon(Icons.add),
               label: const Text('Tambah Obat'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFBA54C),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),

@@ -1,10 +1,44 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class ProfilePage extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/model/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  UserModel? user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user');
+    if (userJson != null) {
+      final decoded = jsonDecode(userJson);
+      setState(() {
+        user = UserModel.fromJson(decoded);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -21,23 +55,24 @@ class ProfilePage extends StatelessWidget {
               backgroundImage: AssetImage('assets/user.png'),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Kezia Patricia Zefanya',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              user!.fullname,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const Text('kezia@email.com', style: TextStyle(color: Colors.grey)),
+            Text(user!.email, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
-            _buildInfoItem('Umur', '22 Tahun'),
-            _buildInfoItem('IMT', '24.6 Normal'),
-            _buildInfoItem('Riwayat Diabetes', 'Diagnosa 2020'),
+            _buildInfoItem('Umur', '${user!.age} Tahun'),
+            _buildInfoItem('IMT', '${user!.bmi?.toStringAsFixed(1)}'),
+            _buildInfoItem(
+              'Riwayat Diabetes',
+              user!.familyHistory == 'yes' ? 'Ada' : 'Tidak Ada',
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6DC5B2),
                       shape: RoundedRectangleBorder(
@@ -79,7 +114,17 @@ class ProfilePage extends StatelessWidget {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.logout),
                 label: const Text('Keluar'),
-                onPressed: () {},
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.remove('access_token');
+                  await prefs.remove('user');
+
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                    (route) => false,
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: const Color(0xFF1D5C63),
