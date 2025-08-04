@@ -23,7 +23,7 @@ class MythsFactsViewModel extends ChangeNotifier {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
+      final token = prefs.getString('access_token') ?? '';
       _allFacts = await ApiService.fetchMythsAndFacts(token);
       _pickRandom();
     } catch (e) {

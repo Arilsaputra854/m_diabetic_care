@@ -23,7 +23,7 @@ class _EdukasiVideoPageState extends State<EdukasiVideoPage> {
 
   Future<void> loadVideos() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = prefs.getString('access_token');
     if (token == null) {
       setState(() {
         isLoading = false;

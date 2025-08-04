@@ -21,6 +21,7 @@ import 'package:m_diabetic_care/view/reset_password_page.dart';
 import 'package:m_diabetic_care/view/setting_page.dart';
 import 'package:m_diabetic_care/view/splash_screen_page.dart';
 import 'package:m_diabetic_care/view/view_edukasi_page.dart';
+import 'package:m_diabetic_care/viewmodel/bmi_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/login_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/myths_facts_view_model.dart';
 import 'package:m_diabetic_care/viewmodel/register_viewmodel.dart';
@@ -30,6 +31,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => BmiViewModel()),
         ChangeNotifierProvider(create: (_) => RegisterViewModel()),
         ChangeNotifierProvider(create: (_) => LoginViewmodel()),
         ChangeNotifierProvider(create: (_) => MythsFactsViewModel()),

@@ -22,6 +22,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
   String gender = 'Laki-laki';
   bool hasDMFamily = false;
 
@@ -156,7 +159,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: passwordController,
                 hintText: 'Kata Sandi',
                 icon: Icons.lock_outline,
-                obscureText: true,
+                obscureText: _obscurePassword,
+                onToggleVisibility: () {
+                  setState(() => _obscurePassword = !_obscurePassword);
+                },
               ),
 
               // Konfirmasi Sandi
@@ -164,7 +170,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: confirmPasswordController,
                 hintText: 'Konfirmasi Kata Sandi',
                 icon: Icons.lock_outline,
-                obscureText: true,
+                obscureText: _obscureConfirmPassword,
+                onToggleVisibility: () {
+                  setState(
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                  );
+                },
               ),
 
               const SizedBox(height: 24),
@@ -259,31 +270,37 @@ class _RegisterPageState extends State<RegisterPage> {
     required String hintText,
     required IconData icon,
     bool obscureText = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
         obscureText: obscureText,
-        style: const TextStyle(color: Colors.black), // warna teks user
+        style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
           hintText: hintText,
           prefixIcon: Icon(icon, color: Color(0xff9098B1)),
+          suffixIcon:
+              onToggleVisibility != null
+                  ? IconButton(
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off : Icons.visibility,
+                      color: Color(0xff9098B1),
+                    ),
+                    onPressed: onToggleVisibility,
+                  )
+                  : null,
           hintStyle: const TextStyle(color: Color(0xff9098B1)),
           filled: true,
           fillColor: Colors.white,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFFEBF0FF), // warna saat belum fokus
-            ),
+            borderSide: const BorderSide(color: Color(0xFFEBF0FF)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFFB4C2F8), // warna saat fokus (lebih gelap)
-              width: 2,
-            ),
+            borderSide: const BorderSide(color: Color(0xFFB4C2F8), width: 2),
           ),
         ),
       ),
@@ -302,11 +319,7 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _genderOption(
-            label: 'Laki-Laki',
-            icon: Icons.male,
-            value: 'male',
-          ),
+          _genderOption(label: 'Laki-Laki', icon: Icons.male, value: 'male'),
           _genderOption(
             label: 'Perempuan',
             icon: Icons.female,

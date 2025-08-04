@@ -21,7 +21,7 @@ class _EdukasiPosterPageState extends State<EdukasiPosterPage> {
 
   Future<void> loadPosters() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = prefs.getString('access_token');
     if (token == null) {
       setState(() => isLoading = false);
       return;

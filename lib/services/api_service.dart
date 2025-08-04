@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:m_diabetic_care/model/educational_content.dart';
+import 'package:m_diabetic_care/model/food.dart';
 import 'package:m_diabetic_care/services/responses/login_response.dart';
 
 class ApiService {
@@ -218,6 +219,7 @@ class ApiService {
     String token,
   ) async {
     final url = Uri.parse('$baseUrl/fact-myths');
+    debugPrint('Token $token');
     debugPrint('GET $url');
 
     try {
@@ -333,6 +335,53 @@ class ApiService {
     } catch (e) {
       debugPrint('❌ Error fetch news: $e');
       rethrow;
+    }
+  }
+
+  /// 📌 GET Foods
+  static Future<List<FoodModel>> fetchFoods(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/foods'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => FoodModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Gagal memuat data makanan');
+    }
+  }
+
+  /// 📌 UPDATE BMI
+  static Future<bool> updateUserBmi({
+    required String token,
+    required double bmi,
+  }) async {
+    final url = Uri.parse('$baseUrl/user/profile');
+    final body = {'bmi': bmi.toStringAsFixed(1)};
+
+    debugPrint('PUT $url');
+    debugPrint('Body: ${jsonEncode(body)}');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('❌ Error update BMI: $e');
+      return false;
     }
   }
 }

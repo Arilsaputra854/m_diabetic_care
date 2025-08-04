@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:m_diabetic_care/model/user.dart';
+import 'package:m_diabetic_care/view/update_bmi_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -34,9 +35,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -72,7 +71,15 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const UpdateBmiPage(),
+                        ),
+                      );
+                    },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6DC5B2),
                       shape: RoundedRectangleBorder(
@@ -133,7 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -145,7 +152,9 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Expanded(child: Text(title, style: const TextStyle(color: Colors.grey))),
+          Expanded(
+            child: Text(title, style: const TextStyle(color: Colors.grey)),
+          ),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
