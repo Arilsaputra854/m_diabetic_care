@@ -4,7 +4,6 @@ import 'package:m_diabetic_care/view/edukasi_berita_page.dart';
 import 'package:m_diabetic_care/view/fakta_mitos_page.dart';
 import 'package:m_diabetic_care/view/forgot_password.dart';
 import 'package:m_diabetic_care/view/home_page.dart';
-import 'package:m_diabetic_care/view/input_makanan_page.dart';
 import 'package:m_diabetic_care/view/kalkulator_page.dart';
 import 'package:m_diabetic_care/view/kalori_tracker_page.dart';
 import 'package:m_diabetic_care/view/login_page.dart';
@@ -20,14 +19,18 @@ import 'package:m_diabetic_care/view/reminder_obat_page.dart';
 import 'package:m_diabetic_care/view/reset_password_page.dart';
 import 'package:m_diabetic_care/view/setting_page.dart';
 import 'package:m_diabetic_care/view/splash_screen_page.dart';
+import 'package:m_diabetic_care/view/update_user_page.dart';
 import 'package:m_diabetic_care/view/view_edukasi_page.dart';
 import 'package:m_diabetic_care/viewmodel/bmi_viewmodel.dart';
+import 'package:m_diabetic_care/viewmodel/calori_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/login_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/myths_facts_view_model.dart';
 import 'package:m_diabetic_care/viewmodel/register_viewmodel.dart';
+import 'package:m_diabetic_care/viewmodel/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  
   runApp(
     MultiProvider(
       providers: [
@@ -35,6 +38,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => RegisterViewModel()),
         ChangeNotifierProvider(create: (_) => LoginViewmodel()),
         ChangeNotifierProvider(create: (_) => MythsFactsViewModel()),
+        ChangeNotifierProvider(create: (_) => UserViewModel()),
+        ChangeNotifierProvider(create: (_) => KaloriViewModel()),
       ],
       child: const MyApp(),
     ),
@@ -72,7 +77,8 @@ class MyApp extends StatelessWidget {
         '/setting' : (context) => const SettingPage(),
         '/profile' : (context) => const ProfilePage(),
         '/fakta-mitos' : (context) => const MitosFaktaPage(),    
-        '/input-makanan': (context) => const InputMakananPage(),
+        
+        '/update-user': (context) => const UpdateUserPage(),
         '/reset-password': (context) => const ResetPasswordPage(),
       },
     );

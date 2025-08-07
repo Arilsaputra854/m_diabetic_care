@@ -1,9 +1,16 @@
+// riwayat_dm_widget.dart
+
 import 'package:flutter/material.dart';
 
 class RiwayatDMKeluargaDropdown extends StatefulWidget {
   final void Function(bool) onChanged;
+  final String? initialValue;
 
-  const RiwayatDMKeluargaDropdown({super.key, required this.onChanged});
+  const RiwayatDMKeluargaDropdown({
+    super.key,
+    required this.onChanged,
+    this.initialValue,
+  });
 
   @override
   State<RiwayatDMKeluargaDropdown> createState() =>
@@ -18,6 +25,22 @@ class _RiwayatDMKeluargaDropdownState
     'Diabetes Gestasional',
   ];
   String? selectedOption;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedOption = widget.initialValue;
+  }
+  @override
+void didUpdateWidget(covariant RiwayatDMKeluargaDropdown oldWidget) {
+  super.didUpdateWidget(oldWidget);
+  if (widget.initialValue != oldWidget.initialValue) {
+    setState(() {
+      selectedOption = widget.initialValue;
+    });
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

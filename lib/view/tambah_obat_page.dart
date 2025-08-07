@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TambahObatPage extends StatefulWidget {
   final Function(String nama, String waktu) onSimpan;
@@ -16,8 +18,11 @@ class TambahObatPage extends StatefulWidget {
 
 class _TambahObatPageState extends State<TambahObatPage> {
   final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _dosisController = TextEditingController();
   TimeOfDay? _selectedTime;
   String? _selectedKeterangan;
+  String? _selectedTipeObat;
+  final List<String> _tipeObat = ['oral', 'injeksi'];
 
   final List<String> _keteranganWaktu = [
     "Sebelum Makan",
@@ -37,22 +42,44 @@ class _TambahObatPageState extends State<TambahObatPage> {
     }
   }
 
-  void _simpanObat() {
-    if (_namaController.text.isNotEmpty &&
-        _selectedTime != null &&
-        _selectedKeterangan != null) {
-      final jam = _selectedTime!.format(context);
-      final waktu = "$jam - $_selectedKeterangan";
+  void _simpanObat() async {
+  if (_namaController.text.isNotEmpty &&
+      _dosisController.text.isNotEmpty &&
+      _selectedTime != null &&
+      _selectedKeterangan != null &&
+      _selectedTipeObat != null) {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
 
-      widget.onSimpan(_namaController.text, waktu); // kirim data
+    final timeFormatted =
+        "${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}";
+
+    final success = await ApiService.submitMedicationReminder(
+      token: token,
+      medicationName: _namaController.text,
+      dosage: _dosisController.text,
+      time: timeFormatted,
+      type: _selectedTipeObat!,
+      notes: _selectedKeterangan!,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Obat berhasil disimpan")),
+      );
+      widget.onBack();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Lengkapi semua field terlebih dahulu."),
-        ),
+        const SnackBar(content: Text("Gagal menyimpan data obat")),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Lengkapi semua field terlebih dahulu.")),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +95,7 @@ class _TambahObatPageState extends State<TambahObatPage> {
             const Text(
               "Tambah Obat",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            )
+            ),
           ],
         ),
         Expanded(
@@ -80,6 +107,36 @@ class _TambahObatPageState extends State<TambahObatPage> {
                   controller: _namaController,
                   decoration: const InputDecoration(
                     labelText: "Nama Obat",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _dosisController,
+                  decoration: const InputDecoration(
+                    labelText: "Dosis",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: _selectedTipeObat,
+                  items:
+                      _tipeObat.map((item) {
+                        return DropdownMenuItem(
+                          value: item,
+                          child: Text(
+                            item[0].toUpperCase() + item.substring(1),
+                          ),
+                        );
+                      }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedTipeObat = value;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: "Tipe Obat",
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -105,12 +162,15 @@ class _TambahObatPageState extends State<TambahObatPage> {
 
                 DropdownButtonFormField<String>(
                   value: _selectedKeterangan,
-                  items: _keteranganWaktu
-                      .map((item) => DropdownMenuItem(
-                            value: item,
-                            child: Text(item),
-                          ))
-                      .toList(),
+                  items:
+                      _keteranganWaktu
+                          .map(
+                            (item) => DropdownMenuItem(
+                              value: item,
+                              child: Text(item),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedKeterangan = value;

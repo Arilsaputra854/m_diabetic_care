@@ -77,9 +77,12 @@ class _FoodListPageState extends State<FoodListPage> {
     final kcal = _targetMealCalories?.toStringAsFixed(0) ?? '-';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Pilih Makanan (${widget.mealType})'),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddFoodDialog(context),
+        child: const Icon(Icons.add),
       ),
+
+      appBar: AppBar(title: Text('Pilih Makanan (${widget.mealType})')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,7 +109,9 @@ class _FoodListPageState extends State<FoodListPage> {
                 final foods = snapshot.data ?? [];
 
                 if (foods.isEmpty) {
-                  return const Center(child: Text('Tidak ada makanan tersedia.'));
+                  return const Center(
+                    child: Text('Tidak ada makanan tersedia.'),
+                  );
                 }
 
                 return ListView.builder(
@@ -114,16 +119,52 @@ class _FoodListPageState extends State<FoodListPage> {
                   itemBuilder: (context, index) {
                     final food = foods[index];
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       child: ListTile(
                         title: Text(food.name),
-                        subtitle: Text('${food.calories.toInt()} kcal • ${food.carbs}g Karbohidrat'),
+                        subtitle: Text(
+                          '${food.calories.toInt()} kcal • ${food.carbs}g Karbohidrat',
+                        ),
                         trailing: const Icon(Icons.add),
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Dipilih: ${food.name}')),
+                        onTap: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          final token = prefs.getString('access_token');
+
+                          if (token == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Token tidak ditemukan'),
+                              ),
+                            );
+                            return;
+                          }
+                          final mealType = mapMealType(widget.mealType);
+
+                          final success = await ApiService.submitMealInput(
+                            token: token,
+                            mealType: mealType,
+                            food: food,
                           );
-                          Navigator.pop(context);
+
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${food.name} berhasil ditambahkan ke ${widget.mealType}',
+                                ),
+                              ),
+                            );
+                            Navigator.pop(context);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Gagal menambahkan ${food.name}'),
+                              ),
+                            );
+                          }
                         },
                       ),
                     );
@@ -135,5 +176,126 @@ class _FoodListPageState extends State<FoodListPage> {
         ],
       ),
     );
+  }
+
+  void _showAddFoodDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final carbsController = TextEditingController();
+    final sugarController = TextEditingController();
+    final caloriesController = TextEditingController();
+    final brandController = TextEditingController();
+    final proteinController = TextEditingController();
+    final fatController = TextEditingController();
+    final categoryController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Tambah Makanan'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildInput('Nama', nameController),
+                _buildInput('Karbohidrat', carbsController, isNumber: true),
+                _buildInput('Gula', sugarController, isNumber: true),
+                _buildInput('Kalori', caloriesController, isNumber: true),
+                _buildInput('Merek', brandController),
+                _buildInput('Protein', proteinController, isNumber: true),
+                _buildInput('Lemak', fatController, isNumber: true),
+                _buildInput('Kategori', categoryController),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Batal'),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+            ElevatedButton(
+              child: const Text('Simpan'),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                final token = prefs.getString('access_token');
+
+                if (token == null) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Token tidak ditemukan')),
+                  );
+                  return;
+                }
+
+                final success = await ApiService.createFood(
+                  token: token,
+                  name: nameController.text,
+                  carbs: double.tryParse(carbsController.text) ?? 0,
+                  sugar: double.tryParse(sugarController.text) ?? 0,
+                  calories: int.tryParse(caloriesController.text) ?? 0,
+                  brand: brandController.text,
+                  protein: double.tryParse(proteinController.text) ?? 0,
+                  fat: double.tryParse(fatController.text) ?? 0,
+                  category: categoryController.text,
+                );
+
+                Navigator.pop(ctx);
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Makanan berhasil ditambahkan'),
+                    ),
+                  );
+                  setState(() {
+                    _foodsFuture = _loadFoods(); // refresh
+                  });
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal menambahkan makanan')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInput(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
+}
+
+String mapMealType(String indoType) {
+  switch (indoType.toLowerCase()) {
+    case 'sarapan':
+      return 'breakfast';
+    case 'camilan pagi':
+    case 'cemilan pagi':
+      return 'morning_snack';
+    case 'makan siang':
+      return 'lunch';
+    case 'camilan sore':
+    case 'cemilan sore':
+      return 'afternoon_snack';
+    case 'makan malam':
+      return 'dinner';
+    default:
+      return 'other'; // fallback
   }
 }

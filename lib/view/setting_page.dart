@@ -18,14 +18,21 @@ class SettingPage extends StatelessWidget {
             },
           ),
           const Divider(),
+
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: const Text('Update Data Pengguna'),
+            onTap: () {
+              Navigator.pushNamed(context, '/update-user');
+            },
+          ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.delete_outline),
             title: const Text('Hapus Akun'),
             textColor: Colors.red,
             iconColor: Colors.red,
-            onTap: () {
-              
-            },
+            onTap: () {},
           ),
         ],
       ),

@@ -3,13 +3,12 @@ class UserModel {
   final String fullname;
   final String email;
   final String phoneNumber;
-  final int age;
-  final String birthDate;
+  final String birthDate; // Tetap simpan string ISO
   final String role;
   final String gender;
   final String familyHistory;
-  final int height;
-  final int weight;
+  final int? height;
+  final int? weight;
   final double? bmi;
   final String? diabetesType;
   final double? glucoseLevel;
@@ -21,13 +20,12 @@ class UserModel {
     required this.fullname,
     required this.email,
     required this.phoneNumber,
-    required this.age,
     required this.birthDate,
     required this.role,
     required this.gender,
     required this.familyHistory,
-    required this.height,
-    required this.weight,
+    this.height,
+    this.weight,
     this.bmi,
     this.diabetesType,
     this.glucoseLevel,
@@ -41,7 +39,6 @@ class UserModel {
       fullname: json['fullname'],
       email: json['email'],
       phoneNumber: json['phone_number'],
-      age: json['age'],
       birthDate: json['birth_date'],
       role: json['role'],
       gender: json['gender'],
@@ -56,24 +53,39 @@ class UserModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'fullname': fullname,
-      'email': email,
-      'phone_number': phoneNumber,
-      'age': age,
-      'birth_date': birthDate,
-      'role': role,
-      'gender': gender,
-      'family_history': familyHistory,
-      'height': height,
-      'weight': weight,
-      'bmi': bmi,
-      'diabetes_type': diabetesType,
-      'glucose_level': glucoseLevel,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
-    };
+  // Getter untuk menghitung umur
+  int? get age {
+    try {
+      final birth = DateTime.parse(birthDate);
+      final now = DateTime.now();
+      int years = now.year - birth.year;
+      if (now.month < birth.month || (now.month == birth.month && now.day < birth.day)) {
+        years--;
+      }
+      return years;
+    } catch (_) {
+      return null;
+    }
   }
+
+  Map<String, dynamic> toJson() {
+  return {
+    'id': id,
+    'fullname': fullname,
+    'email': email,
+    'phone_number': phoneNumber,
+    'birth_date': birthDate,
+    'role': role,
+    'gender': gender,
+    'family_history': familyHistory,
+    'height': height,
+    'weight': weight,
+    'bmi': bmi,
+    'diabetes_type': diabetesType,
+    'glucose_level': glucoseLevel,
+    'created_at': createdAt,
+    'updated_at': updatedAt,
+  };
+}
+
 }

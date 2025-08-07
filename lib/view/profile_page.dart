@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:m_diabetic_care/model/user.dart';
+import 'package:m_diabetic_care/services/api_service.dart';
 import 'package:m_diabetic_care/view/update_bmi_page.dart';
+import 'package:m_diabetic_care/viewmodel/user_viewmodel.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -18,22 +21,15 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user');
-    if (userJson != null) {
-      final decoded = jsonDecode(userJson);
-      setState(() {
-        user = UserModel.fromJson(decoded);
-      });
-    }
+    final userProvider = Provider.of<UserViewModel>(context, listen: false);
+    userProvider.fetchUserProfile();
   }
 
   @override
   Widget build(BuildContext context) {
+    final userVM = Provider.of<UserViewModel>(context);
+    final user = userVM.user;
+
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -51,8 +47,10 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             const CircleAvatar(
               radius: 40,
-              backgroundImage: AssetImage('assets/user.png'),
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.person, size: 40, color: Colors.white),
             ),
+
             const SizedBox(height: 12),
             Text(
               user!.fullname,
@@ -71,17 +69,19 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => const UpdateBmiPage(),
                         ),
                       );
+                      await userVM.fetchUserProfile();
                     },
 
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6DC5B2),
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -92,9 +92,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _showGlucoseUpdateDialog(context, userVM, user!);
+                    },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6DC5B2),
+
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -144,6 +149,74 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showGlucoseUpdateDialog(
+    BuildContext context,
+    UserViewModel userVM,
+    UserModel user,
+  ) {
+    final TextEditingController glucoseController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Perbarui Gula Darah'),
+          content: TextField(
+            controller: glucoseController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Gula Darah (mg/dL)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final input = glucoseController.text;
+                final glucose = double.tryParse(input);
+
+                if (glucose == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Masukkan angka yang valid')),
+                  );
+                  return;
+                }
+
+                final updatedUser = {
+                  "fullname": user.fullname,
+                  "phone_number": user.phoneNumber ?? "",
+                  "gender": user.gender ?? "male",
+                  "family_history": user.familyHistory ?? "",
+                  "height": user.height ?? 0,
+                  "weight": user.weight ?? 0,
+                  "birth_date": user.birthDate ?? "1990-01-01",
+                  "diabetes_type": user.diabetesType ?? "",
+                  "glucose_level": glucose,
+                };
+
+                final success = await ApiService.updateUserProfile(updatedUser);
+
+                if (success) {
+                  Navigator.pop(context); // Close dialog
+                  await userVM.fetchUserProfile(); // Refresh user data
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal memperbarui data')),
+                  );
+                }
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        );
+      },
     );
   }
 
