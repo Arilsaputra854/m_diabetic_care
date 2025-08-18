@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/services/notification_service.dart';
 import 'package:m_diabetic_care/view/change_password_setting.dart';
 import 'package:m_diabetic_care/view/edukasi_berita_page.dart';
+import 'package:m_diabetic_care/view/edukasi_page.dart';
 import 'package:m_diabetic_care/view/fakta_mitos_page.dart';
 import 'package:m_diabetic_care/view/forgot_password.dart';
 import 'package:m_diabetic_care/view/home_page.dart';
+import 'package:m_diabetic_care/view/imt_page.dart';
 import 'package:m_diabetic_care/view/kalkulator_page.dart';
 import 'package:m_diabetic_care/view/kalori_tracker_page.dart';
 import 'package:m_diabetic_care/view/login_page.dart';
+import 'package:m_diabetic_care/view/makan_page.dart';
 import 'package:m_diabetic_care/view/manajemen_luka_page.dart';
 import 'package:m_diabetic_care/view/obat_page.dart';
 import 'package:m_diabetic_care/view/otp_verification_page.dart';
@@ -29,8 +33,10 @@ import 'package:m_diabetic_care/viewmodel/register_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-void main() {
-  
+Future<void> main() async {
+   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+
   runApp(
     MultiProvider(
       providers: [
@@ -77,7 +83,9 @@ class MyApp extends StatelessWidget {
         '/setting' : (context) => const SettingPage(),
         '/profile' : (context) => const ProfilePage(),
         '/fakta-mitos' : (context) => const MitosFaktaPage(),    
-        
+        '/imt' : (context) => const IMTPage(),
+        '/food' : (context) => const MakanPage(),        
+        '/edukasi' : (context) => const EdukasiPage(),
         '/update-user': (context) => const UpdateUserPage(),
         '/reset-password': (context) => const ResetPasswordPage(),
       },

@@ -514,23 +514,28 @@ class ApiService {
     }
   }
 
-  static Future<void> createExerciseReminder(
-    String token,
-    Map<String, dynamic> body,
-  ) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/exercise-reminders'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
+  static Future<ExerciseReminder> createExerciseReminder(
+  String token,
+  Map<String, dynamic> body,
+) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/exercise-reminders'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(body),
+  );
 
-    if (response.statusCode != 201) {
-      throw Exception('Gagal menambahkan latihan');
-    }
+  if (response.statusCode == 201) {
+    final json = jsonDecode(response.body);
+    final data = json['data']; // ambil objek "data"
+    return ExerciseReminder.fromJson(data); // parsing hanya "data"
+  } else {
+    throw Exception('Gagal membuat latihan: ${response.body}');
   }
+}
+
 
   // DELETE
   static Future<void> deleteExerciseReminder(String token, int id) async {

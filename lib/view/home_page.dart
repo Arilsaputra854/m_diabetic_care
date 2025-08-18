@@ -170,6 +170,7 @@ class HomeContent extends StatelessWidget {
     required this.onTambahObat,
     required this.daftarObat,
   });
+
   @override
   Widget build(BuildContext context) {
     final kaloriVM = context.watch<KaloriViewModel>();
@@ -186,6 +187,8 @@ class HomeContent extends StatelessWidget {
           _buildCardKalori(kaloriVM.totalCalories, kaloriVM.targetCalories),
           const SizedBox(height: 12),
           _buildCardObat(daftarObat),
+          const SizedBox(height: 12),
+          _buildQuickMenu(context), // grid menu + tombol lebar
         ],
       ),
     );
@@ -208,10 +211,9 @@ class HomeContent extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value:
-                targetCalories == 0
-                    ? 0
-                    : (totalCalories / targetCalories).clamp(0, 1),
+            value: targetCalories == 0
+                ? 0
+                : (totalCalories / targetCalories).clamp(0, 1),
             backgroundColor: Colors.grey[200],
             color: const Color(0xFF1D5C63),
           ),
@@ -307,26 +309,23 @@ class HomeContent extends StatelessWidget {
     );
   }
 
-  // Tambahkan fungsi ini di atas buildCardObat
   Obat? getNextMedication(List<Obat> daftarObat) {
     final now = TimeOfDay.now();
 
-    // Filter obat dengan jadwal waktu setelah sekarang
-    List<Obat> upcoming =
-        daftarObat.where((obat) {
-          final parts = obat.jadwal.split(":");
-          if (parts.length != 2) return false;
+    // Filter obat dengan jadwal setelah sekarang
+    List<Obat> upcoming = daftarObat.where((obat) {
+      final parts = obat.jadwal.split(":");
+      if (parts.length != 2) return false;
 
-          final jam = int.tryParse(parts[0]);
-          final menit = int.tryParse(parts[1]);
+      final jam = int.tryParse(parts[0]);
+      final menit = int.tryParse(parts[1]);
+      if (jam == null || menit == null) return false;
 
-          if (jam == null || menit == null) return false;
+      final time = TimeOfDay(hour: jam, minute: menit);
 
-          final time = TimeOfDay(hour: jam, minute: menit);
-
-          return time.hour > now.hour ||
-              (time.hour == now.hour && time.minute > now.minute);
-        }).toList();
+      return time.hour > now.hour ||
+          (time.hour == now.hour && time.minute > now.minute);
+    }).toList();
 
     // Urutkan berdasarkan waktu terdekat
     upcoming.sort((a, b) {
@@ -413,6 +412,104 @@ class HomeContent extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickMenu(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: 1.25,
+          children: [
+            _MenuTile(
+              icon: Icons.school,
+              label: 'Edukasi',
+              onTap: () => Navigator.pushNamed(context, '/edukasi'),
+            ),
+            _MenuTile(
+              icon: Icons.fastfood_sharp,
+              label: 'Makanan',
+              onTap: () => Navigator.pushNamed(context, '/food'),
+            ),
+            _MenuTile(
+              icon: Icons.monitor_weight,
+              label: 'Index Masa Tubuh',
+              onTap: () => Navigator.pushNamed(context, '/imt'),
+            ),
+            _MenuTile(
+              icon: Icons.article,
+              label: 'Berita',
+              onTap: () => Navigator.pushNamed(context, '/berita'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: () =>
+                Navigator.pushNamed(context, '/fakta-mitos'),
+            icon: const Icon(Icons.videogame_asset),
+            label: const Text('Game Mitos & Fakta'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1D5C63),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MenuTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _MenuTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      elevation: 1,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 28, color: const Color(0xFF1D5C63)),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:m_diabetic_care/model/olahraga.dart';
+import 'package:m_diabetic_care/services/alarm_service.dart';
+import 'package:m_diabetic_care/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../services/api_service.dart'; // Ganti path jika perlu
@@ -14,6 +16,7 @@ class OlahragaPage extends StatefulWidget {
 
 class _OlahragaPageState extends State<OlahragaPage> {
   List<ExerciseReminder> _exerciseList = [];
+  List<ExerciseReminder> _completedList = [];
   Set<String> _completedToday = {};
   String? _token;
   bool _loading = true;
@@ -38,11 +41,18 @@ class _OlahragaPageState extends State<OlahragaPage> {
     try {
       final data = await ApiService.getExerciseReminders(_token!);
       setState(() {
-        _exerciseList =
-            data.where((e) {
-              final key = "${e.exerciseType}_${e.scheduledTime}";
-              return !_completedToday.contains(key);
-            }).toList();
+        _exerciseList = [];
+        _completedList = [];
+
+        for (final e in data) {
+          final key = "${e.exerciseType}_${e.scheduledTime}";
+          if (_completedToday.contains(key)) {
+            _completedList.add(e);
+          } else {
+            _exerciseList.add(e);
+          }
+        }
+
         _loading = false;
       });
     } catch (e) {
@@ -136,9 +146,21 @@ class _OlahragaPageState extends State<OlahragaPage> {
                     'notes': '-',
                   };
 
-                  await ApiService.createExerciseReminder(_token!, body);
-                  Navigator.pop(context);
+                  final newReminder = await ApiService.createExerciseReminder(
+                    _token!,
+                    body,
+                  );
                   _fetchExercises();
+                  await AlarmPermission.requestExactAlarmPermission(context);
+                  await NotificationService.scheduleNotificationFromString(
+                    id: newReminder.id,
+                    title: "Saatnya olahraga!",
+                    body:
+                        "${newReminder.durationMinutes} menit ${newReminder.exerciseType} (${newReminder.scheduledTime})",
+                    time: newReminder.scheduledTime, // misalnya "22:40"
+                  );
+
+                  Navigator.pop(context);
                 }
               },
               child: const Text('Simpan'),
@@ -183,11 +205,7 @@ class _OlahragaPageState extends State<OlahragaPage> {
                       final key = "${e.exerciseType}_${e.scheduledTime}";
                       final text =
                           "${e.durationMinutes} menit ${e.exerciseType} (${e.scheduledTime})";
-                      return _activityItem(
-                        key,
-                        text,
-                        reminder: e,
-                      );
+                      return _activityItem(key, text, reminder: e);
                     }),
 
                     _activityItem(
@@ -198,6 +216,27 @@ class _OlahragaPageState extends State<OlahragaPage> {
                     ),
 
                     const SizedBox(height: 20),
+
+                    if (_completedList.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        "Aktivitas yang diselesaikan",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      ..._completedList.map((e) {
+                        final text =
+                            "${e.durationMinutes} menit ${e.exerciseType} (${e.scheduledTime})";
+                        return _activityItem(
+                          "${e.exerciseType}_${e.scheduledTime}",
+                          text,
+                          reminder: e,
+                        );
+                      }),
+                    ],
+
+                    const SizedBox(height: 20),
+
                     _tipsBox(),
                   ],
                 ),
@@ -285,15 +324,18 @@ class _OlahragaPageState extends State<OlahragaPage> {
               if (checked == true) {
                 setState(() {
                   _completedToday.add(key);
+
+                  // Cari reminder yang sesuai
+                  final reminder = _exerciseList.firstWhere(
+                    (e) => "${e.exerciseType}_${e.scheduledTime}" == key,
+                  );
+
+                  // Pindahkan ke list selesai
+                  _completedList.add(reminder);
+                  _exerciseList.remove(reminder);
                 });
+
                 await _saveCompletedToday();
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  setState(() {
-                    _exerciseList.removeWhere(
-                      (e) => "${e.exerciseType}_${e.scheduledTime}" == key,
-                    );
-                  });
-                });
               }
             },
           ),
@@ -306,6 +348,7 @@ class _OlahragaPageState extends State<OlahragaPage> {
               } else if (value == 'delete') {
                 await ApiService.deleteExerciseReminder(_token!, reminder!.id!);
                 _fetchExercises();
+                await NotificationService.cancelNotification(reminder.id);
               }
             },
             itemBuilder:
@@ -446,15 +489,39 @@ class _OlahragaPageState extends State<OlahragaPage> {
   }
 
   Future<void> _saveCompletedToday() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('completedToday', _completedToday.toList());
-  }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('completedToday', _completedToday.toList());
 
-  Future<void> _loadCompletedToday() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getStringList('completedToday') ?? [];
+  // Simpan juga tanggal hari ini (format yyyy-MM-dd)
+  final today = DateTime.now();
+  final todayKey =
+      "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+  await prefs.setString('completedDate', todayKey);
+}
+
+Future<void> _loadCompletedToday() async {
+  final prefs = await SharedPreferences.getInstance();
+  final saved = prefs.getStringList('completedToday') ?? [];
+
+  final today = DateTime.now();
+  final todayKey =
+      "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+  final savedDate = prefs.getString('completedDate');
+
+  if (savedDate == todayKey) {
+    // Kalau masih hari yang sama → pakai data simpanan
     setState(() {
       _completedToday = saved.toSet();
     });
+  } else {
+    // Kalau beda hari → reset
+    setState(() {
+      _completedToday = {};
+    });
+    await prefs.remove('completedToday');
+    await prefs.setString('completedDate', todayKey);
   }
+}
+
 }
