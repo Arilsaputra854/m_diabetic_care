@@ -26,6 +26,7 @@ class NotificationService {
             >()
             ?.requestNotificationsPermission();
     print("🔔 [DEBUG] Permission granted? $granted");
+    _scheduleDailyMealReminders();
   }
 
   static Future<void> scheduleNotificationFromString({
@@ -87,5 +88,42 @@ class NotificationService {
 
   static Future<void> cancelNotification(int id) async {
     await _notifications.cancel(id);
+  }
+
+  static void _scheduleDailyMealReminders() {
+    NotificationService.scheduleNotificationFromString(
+      id: 1,
+      title: "Waktunya Sarapan",
+      body: "Yuk isi energi pagi dengan sarapan sehat 🍞🥛",
+      time: "07:00",
+    );
+
+    NotificationService.scheduleNotificationFromString(
+      id: 2,
+      title: "Waktunya Cemilan Pagi",
+      body: "Jangan lupa cemilan sehat biar nggak lapar sebelum makan siang 🍎",
+      time: "10:00",
+    );
+
+    NotificationService.scheduleNotificationFromString(
+      id: 3,
+      title: "Waktunya Makan Siang",
+      body: "Saatnya makan siang! Pastikan porsinya sesuai kebutuhan 🍚🥗",
+      time: "12:00",
+    );
+
+    NotificationService.scheduleNotificationFromString(
+      id: 4,
+      title: "Waktunya Cemilan Sore",
+      body: "Yuk cemilan sehat biar tetap semangat sore ini 🍪☕",
+      time: "16:00",
+    );
+
+    NotificationService.scheduleNotificationFromString(
+      id: 5,
+      title: "Waktunya Makan Malam",
+      body: "Saatnya makan malam! Pilih makanan ringan biar tidur nyenyak 🍲",
+      time: "19:00",
+    );
   }
 }
