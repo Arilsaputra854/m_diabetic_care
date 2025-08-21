@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:m_diabetic_care/services/api_service.dart';
 import 'package:m_diabetic_care/viewmodel/login_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -31,9 +32,9 @@ class _LoginPageState extends State<LoginPage> {
                 Image.asset('assets/logo/logo.png', width: 250, height: 250),
                 const SizedBox(height: 12),
 
-                const Text(
+                Text(
                   'Selamat Datang!',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                  style: TextStyle(color: Colors.grey, fontSize: 14.sp),
                 ),
                 const SizedBox(height: 24),
 
@@ -108,11 +109,11 @@ class _LoginPageState extends State<LoginPage> {
                             ? const CircularProgressIndicator(
                               color: Colors.white,
                             )
-                            : const Text(
+                            :  Text(
                               'Masuk',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 16.sp,
                               ),
                             );
                       },

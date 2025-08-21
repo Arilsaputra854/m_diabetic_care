@@ -13,6 +13,7 @@ class UserModel {
   final String? diabetesType;
   final double? glucoseLevel;
   final String createdAt;
+  final String? glucoseLevelUpdatedAt;
   final String updatedAt;
 
   UserModel({
@@ -29,6 +30,7 @@ class UserModel {
     this.bmi,
     this.diabetesType,
     this.glucoseLevel,
+    this.glucoseLevelUpdatedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -48,6 +50,7 @@ class UserModel {
       bmi: (json['bmi'] as num?)?.toDouble(),
       diabetesType: json['diabetes_type'],
       glucoseLevel: (json['glucose_level'] as num?)?.toDouble(),
+      glucoseLevelUpdatedAt: json['glucose_level_updated_at'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
@@ -83,6 +86,7 @@ class UserModel {
     'bmi': bmi,
     'diabetes_type': diabetesType,
     'glucose_level': glucoseLevel,
+    'glucose_level_updated_at' : glucoseLevelUpdatedAt,
     'created_at': createdAt,
     'updated_at': updatedAt,
   };

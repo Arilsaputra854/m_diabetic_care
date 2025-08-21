@@ -459,44 +459,53 @@ class ApiService {
     }
   }
 
-  static Future<bool> submitMedicationReminder({
-    required String token,
-    required String medicationName,
-    required String dosage,
-    required String time,
-    required String type,
-    required String notes,
-  }) async {
-    final url = Uri.parse('$baseUrl/medication-reminders');
+  static Future<Obat?> submitMedicationReminder({
+  required String token,
+  required String medicationName,
+  required String dosage,
+  required String time,
+  required String type,
+  required String notes,
+}) async {
+  final url = Uri.parse('$baseUrl/medication-reminders');
 
-    final body = {
-      "medication_name": medicationName,
-      "dosage": dosage,
-      "time": time,
-      "type": type,
-      "notes": notes,
-    };
+  final body = {
+    "medication_name": medicationName,
+    "dosage": dosage,
+    "time": time,
+    "type": type,
+    "notes": notes,
+  };
 
-    debugPrint('POST /medication-reminders');
-    debugPrint('Body: ${jsonEncode(body)}');
+  debugPrint('POST /medication-reminders');
+  debugPrint('Body: ${jsonEncode(body)}');
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
-      return response.statusCode == 201;
-    } catch (e) {
-      debugPrint('❌ Error submitMedicationReminder: $e');
-      return false;
+    debugPrint('Response [${response.statusCode}]: ${response.body}');
+
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+
+      return Obat.fromJson(data);
+
+    } else {
+      return null;
     }
+  } catch (e) {
+    debugPrint('❌ Error submitMedicationReminder: $e');
+    return null;
   }
+}
+
 
   static Future<List<ExerciseReminder>> getExerciseReminders(
     String token,
@@ -515,27 +524,26 @@ class ApiService {
   }
 
   static Future<ExerciseReminder> createExerciseReminder(
-  String token,
-  Map<String, dynamic> body,
-) async {
-  final response = await http.post(
-    Uri.parse('$baseUrl/exercise-reminders'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode(body),
-  );
+    String token,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/exercise-reminders'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
 
-  if (response.statusCode == 201) {
-    final json = jsonDecode(response.body);
-    final data = json['data']; // ambil objek "data"
-    return ExerciseReminder.fromJson(data); // parsing hanya "data"
-  } else {
-    throw Exception('Gagal membuat latihan: ${response.body}');
+    if (response.statusCode == 201) {
+      final json = jsonDecode(response.body);
+      final data = json['data']; // ambil objek "data"
+      return ExerciseReminder.fromJson(data); // parsing hanya "data"
+    } else {
+      throw Exception('Gagal membuat latihan: ${response.body}');
+    }
   }
-}
-
 
   // DELETE
   static Future<void> deleteExerciseReminder(String token, int id) async {
@@ -569,26 +577,31 @@ class ApiService {
     }
   }
 
-  static Future<void> updateMedicationReminder(String token, Obat obat) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/medication-reminders/${obat.id}'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'medication_name': obat.nama,
-        'dosage': obat.dosage,
-        'time': obat.jadwal,
-        'type': obat.tipe,
-        'notes': obat.keterangan,
-      }),
-    );
+  static Future<Obat> updateMedicationReminder(String token, Obat obat) async {
+  final response = await http.put(
+    Uri.parse('$baseUrl/medication-reminders/${obat.id}'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'medication_name': obat.nama,
+      'dosage': obat.dosage,
+      'time': obat.jadwal,
+      'type': obat.tipe,
+      'notes': obat.keterangan,
+    }),
+  );
 
-    if (response.statusCode != 200) {
-      throw Exception('Gagal mengedit obat');
-    }
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+
+    // pastikan struktur JSON sesuai API kamu
+    return Obat.fromJson(data['data']); 
+  } else {
+    throw Exception('Gagal mengedit obat: ${response.body}');
   }
+}
 
   static Future<void> deleteMedicationReminder(int id) async {
     final prefs = await SharedPreferences.getInstance();
@@ -628,6 +641,7 @@ class ApiService {
       },
     );
 
+    debugPrint('Response User Profile: ${response.body}');
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
@@ -650,6 +664,7 @@ class ApiService {
 
     return response.statusCode == 200;
   }
+
 }
 
 String formatDateWithOffset(DateTime dateTime) {

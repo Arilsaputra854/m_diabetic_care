@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:m_diabetic_care/model/obat.dart';
 import 'package:m_diabetic_care/model/user.dart';
 import 'package:m_diabetic_care/services/api_service.dart';
 import 'package:m_diabetic_care/viewmodel/calori_viewmodel.dart'
     show KaloriViewModel;
+import 'package:m_diabetic_care/viewmodel/obat_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:m_diabetic_care/view/edukasi_page.dart';
@@ -13,6 +16,9 @@ import 'package:m_diabetic_care/view/makan_page.dart';
 import 'package:m_diabetic_care/view/obat_page.dart';
 import 'package:m_diabetic_care/view/olahraga_page.dart';
 import 'package:m_diabetic_care/view/tambah_obat_page.dart';
+
+import 'package:m_diabetic_care/viewmodel/calori_viewmodel.dart';
+import 'package:m_diabetic_care/viewmodel/user_viewmodel.dart';
 
 class HomePageV2 extends StatefulWidget {
   const HomePageV2({super.key});
@@ -23,43 +29,25 @@ class HomePageV2 extends StatefulWidget {
 
 class _HomePageV2State extends State<HomePageV2> {
   int _selectedIndex = 0;
-  UserModel? currentUser;
-  List<Obat> _jadwalObat = [];
-
-  List<Map<String, dynamic>> obatList = [];
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    loadJadwalObat();
-
-    Future.microtask(() {
-      final kaloriVM = context.read<KaloriViewModel>();
-      kaloriVM.loadFromPrefs();
-    });
+    _initData();
   }
 
-  Future<void> loadJadwalObat() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token') ?? '';
+  Future<void> _initData() async {
+    // load user dari prefs lewat UserViewModel
+    final userVM = context.read<UserViewModel>();
+    await userVM.loadUserFromPrefs();
 
-    final reminders = await ApiService.getMedicationReminders(token);
+    // load kalori dari prefs
+    final kaloriVM = context.read<KaloriViewModel>();
+    await kaloriVM.loadFromPrefs();
 
-    _jadwalObat = reminders;
-
-    setState(() {});
-  }
-
-  Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user');
-
-    setState(() {
-      if (userJson != null) {
-        currentUser = UserModel.fromJson(jsonDecode(userJson));
-      }
-    });
+    // load jadwal obat via ObatViewModel
+    final obatVM = context.read<ObatViewModel>();
+    await obatVM.fetchObat();
   }
 
   void _goToPengobatan() => setState(() => _selectedIndex = 5);
@@ -68,13 +56,16 @@ class _HomePageV2State extends State<HomePageV2> {
 
   @override
   Widget build(BuildContext context) {
+    final userVM = context.watch<UserViewModel>();
+    final obatVM = context.watch<ObatViewModel>();
+
     Widget bodyContent;
     switch (_selectedIndex) {
       case 0:
         bodyContent = HomeContent(
-          user: currentUser,
+          user: userVM.user,
           onTambahObat: _goToPengobatan,
-          daftarObat: _jadwalObat,
+          daftarObat: obatVM.obatList, // dari VM
         );
         break;
       case 1:
@@ -93,36 +84,18 @@ class _HomePageV2State extends State<HomePageV2> {
         bodyContent = PengobatanPage(
           onTambahObat: _goToTambahObat,
           onBack: _goToHomeContent,
-          onDelete: (index) => setState(() => obatList.removeAt(index)),
-          onDataChanged: () async {
-            await loadJadwalObat();
-          },
         );
         break;
       case 6:
         bodyContent = TambahObatPage(
           onBack: _goToPengobatan,
-          onSimpan: (nama, waktu) {
-            setState(() {
-              obatList.add({
-                'nama': nama,
-                'waktu': waktu,
-                'status': '',
-                'warna': Colors.grey[100],
-                'icon': Icons.schedule,
-                'labelColor': null,
-                'textColor': Colors.grey,
-              });
-              _selectedIndex = 5;
-            });
-          },
         );
         break;
       default:
         bodyContent = HomeContent(
-          user: currentUser,
+          user: userVM.user,
           onTambahObat: _goToPengobatan,
-          daftarObat: _jadwalObat,
+          daftarObat: obatVM.obatList,
         );
     }
 
@@ -159,6 +132,7 @@ class _HomePageV2State extends State<HomePageV2> {
   }
 }
 
+
 class HomeContent extends StatelessWidget {
   final UserModel? user;
   final VoidCallback onTambahObat;
@@ -173,6 +147,7 @@ class HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userVM = context.watch<UserViewModel>(); // ✅ ambil dari provider
     final kaloriVM = context.watch<KaloriViewModel>();
 
     return SingleChildScrollView(
@@ -182,7 +157,7 @@ class HomeContent extends StatelessWidget {
         children: [
           _buildHeader(context),
           const SizedBox(height: 16),
-          _buildCardGulaDarah(),
+          _buildCardGulaDarah(userVM, context),
           const SizedBox(height: 12),
           _buildCardKalori(kaloriVM.totalCalories, kaloriVM.targetCalories),
           const SizedBox(height: 12),
@@ -205,22 +180,23 @@ class HomeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+           Text(
             'Asupan Kalori Harian',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16.sp),
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value: targetCalories == 0
-                ? 0
-                : (totalCalories / targetCalories).clamp(0, 1),
+            value:
+                targetCalories == 0
+                    ? 0
+                    : (totalCalories / targetCalories).clamp(0, 1),
             backgroundColor: Colors.grey[200],
             color: const Color(0xFF1D5C63),
           ),
           const SizedBox(height: 4),
           Text(
             '$totalCalories / $targetCalories Kcal',
-            style: const TextStyle(fontSize: 12),
+            style:  TextStyle(fontSize: 12.sp),
           ),
         ],
       ),
@@ -245,7 +221,7 @@ class HomeContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hi, ${user?.fullname ?? 'User'}',
+              'Hai, ${user?.fullname ?? 'User'}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const Text(
@@ -258,7 +234,7 @@ class HomeContent extends StatelessWidget {
     );
   }
 
-  Widget _buildCardGulaDarah() {
+  Widget _buildCardGulaDarah(UserViewModel userVM, BuildContext context) {
     final gula =
         user?.glucoseLevel != null ? '${user!.glucoseLevel} mg/dL' : '-';
     return Container(
@@ -280,21 +256,24 @@ class HomeContent extends StatelessWidget {
                 ),
                 Text(
                   gula,
-                  style: const TextStyle(
-                    fontSize: 20,
+                  style:  TextStyle(
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Cek terakhir: -',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                 Text(
+                  'Cek terakhir: ${user?.glucoseLevelUpdatedAt != null ?  DateFormat("dd-MM-yyyy HH:mm").format(DateTime.parse(user!.glucoseLevelUpdatedAt!)) : "-"}',
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                 ),
               ],
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              _showGlucoseUpdateDialog(context, userVM, user!);
+            },
+
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1D5C63),
               foregroundColor: Colors.white,
@@ -302,10 +281,71 @@ class HomeContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Tambah Data'),
+            child:  Text('Tambah Data', style: TextStyle(fontSize: 16.sp),),
           ),
         ],
       ),
+    );
+  }
+
+  void _showGlucoseUpdateDialog(
+    BuildContext context,
+    UserViewModel userVM,
+    UserModel user,
+  ) {
+    final TextEditingController glucoseController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Perbarui Gula Darah'),
+          content: TextField(
+            controller: glucoseController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Gula Darah (mg/dL)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final input = glucoseController.text;
+                final glucose = double.tryParse(input);
+
+                if (glucose == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Masukkan angka yang valid')),
+                  );
+                  return;
+                }
+
+                final updatedUser = {
+                  "glucose_level": glucose,
+                  "glucose_level_updated_at": DateTime.now().toIso8601String(),
+                };
+
+                final success = await ApiService.updateUserProfile(updatedUser);
+
+                if (success) {
+                  Navigator.pop(context); // Close dialog
+                  await userVM.fetchUserProfile(); // Refresh user data
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal memperbarui data')),
+                  );
+                }
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -313,19 +353,20 @@ class HomeContent extends StatelessWidget {
     final now = TimeOfDay.now();
 
     // Filter obat dengan jadwal setelah sekarang
-    List<Obat> upcoming = daftarObat.where((obat) {
-      final parts = obat.jadwal.split(":");
-      if (parts.length != 2) return false;
+    List<Obat> upcoming =
+        daftarObat.where((obat) {
+          final parts = obat.jadwal.split(":");
+          if (parts.length != 2) return false;
 
-      final jam = int.tryParse(parts[0]);
-      final menit = int.tryParse(parts[1]);
-      if (jam == null || menit == null) return false;
+          final jam = int.tryParse(parts[0]);
+          final menit = int.tryParse(parts[1]);
+          if (jam == null || menit == null) return false;
 
-      final time = TimeOfDay(hour: jam, minute: menit);
+          final time = TimeOfDay(hour: jam, minute: menit);
 
-      return time.hour > now.hour ||
-          (time.hour == now.hour && time.minute > now.minute);
-    }).toList();
+          return time.hour > now.hour ||
+              (time.hour == now.hour && time.minute > now.minute);
+        }).toList();
 
     // Urutkan berdasarkan waktu terdekat
     upcoming.sort((a, b) {
@@ -360,9 +401,9 @@ class HomeContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+           Text(
             'Pengobatan Selanjutnya',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
           ),
           const SizedBox(height: 8),
           if (obatSelanjutnya != null)
@@ -386,7 +427,7 @@ class HomeContent extends StatelessWidget {
                       '${obatSelanjutnya.nama} (${obatSelanjutnya.dosage}x)\n'
                       'Jam: ${obatSelanjutnya.jadwal} WIB\n'
                       '${obatSelanjutnya.keterangan}',
-                      style: const TextStyle(fontSize: 12),
+                      style:  TextStyle(fontSize: 14.sp),
                     ),
                   ),
                 ],
@@ -401,7 +442,7 @@ class HomeContent extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: onTambahObat,
               icon: const Icon(Icons.add),
-              label: const Text('Tambah Obat'),
+              label:  Text('Tambah Obat',style: TextStyle(fontSize: 16.sp),),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFBA54C),
                 foregroundColor: Colors.white,
@@ -454,10 +495,9 @@ class HomeContent extends StatelessWidget {
         SizedBox(
           height: 56,
           child: ElevatedButton.icon(
-            onPressed: () =>
-                Navigator.pushNamed(context, '/fakta-mitos'),
+            onPressed: () => Navigator.pushNamed(context, '/fakta-mitos'),
             icon: const Icon(Icons.videogame_asset),
-            label: const Text('Game Mitos & Fakta'),
+            label:  Text('Game Mitos & Fakta',style: TextStyle(fontSize: 16.sp),),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1D5C63),
               foregroundColor: Colors.white,
@@ -502,9 +542,9 @@ class _MenuTile extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style:  TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 16.sp,
                 ),
               ),
             ],

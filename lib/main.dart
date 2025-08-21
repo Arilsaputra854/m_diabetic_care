@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:m_diabetic_care/services/notification_service.dart';
 import 'package:m_diabetic_care/view/change_password_setting.dart';
 import 'package:m_diabetic_care/view/edukasi_berita_page.dart';
@@ -29,25 +30,32 @@ import 'package:m_diabetic_care/viewmodel/bmi_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/calori_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/login_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/myths_facts_view_model.dart';
+import 'package:m_diabetic_care/viewmodel/obat_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/register_viewmodel.dart';
 import 'package:m_diabetic_care/viewmodel/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
-   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => BmiViewModel()),
-        ChangeNotifierProvider(create: (_) => RegisterViewModel()),
-        ChangeNotifierProvider(create: (_) => LoginViewmodel()),
-        ChangeNotifierProvider(create: (_) => MythsFactsViewModel()),
-        ChangeNotifierProvider(create: (_) => UserViewModel()),
-        ChangeNotifierProvider(create: (_) => KaloriViewModel()),
-      ],
-      child: const MyApp(),
+    ScreenUtilInit(
+      designSize: const Size(360, 690), // ukuran desain dasar
+      builder: (context, child) {
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => BmiViewModel()),
+            ChangeNotifierProvider(create: (_) => RegisterViewModel()),
+            ChangeNotifierProvider(create: (_) => LoginViewmodel()),
+            ChangeNotifierProvider(create: (_) => MythsFactsViewModel()),
+            ChangeNotifierProvider(create: (_) => UserViewModel()),
+            ChangeNotifierProvider(create: (_) => KaloriViewModel()),
+            ChangeNotifierProvider(create: (_) => ObatViewModel()),
+          ],
+          child: const MyApp(),
+        );
+      },
     ),
   );
 }
@@ -80,12 +88,12 @@ class MyApp extends StatelessWidget {
         '/forgot-password': (context) => const ForgotPasswordPage(),
         '/otp-verification': (context) => const OtpVerificationPage(),
         '/change-password-setting': (context) => const ChangePasswordSetting(),
-        '/setting' : (context) => const SettingPage(),
-        '/profile' : (context) => const ProfilePage(),
-        '/fakta-mitos' : (context) => const MitosFaktaPage(),    
-        '/imt' : (context) => const IMTPage(),
-        '/food' : (context) => const MakanPage(),        
-        '/edukasi' : (context) => const EdukasiPage(),
+        '/setting': (context) => const SettingPage(),
+        '/profile': (context) => const ProfilePage(),
+        '/fakta-mitos': (context) => const MitosFaktaPage(),
+        '/imt': (context) => const IMTPage(),
+        '/food': (context) => const MakanPage(),
+        '/edukasi': (context) => const EdukasiPage(),
         '/update-user': (context) => const UpdateUserPage(),
         '/reset-password': (context) => const ResetPasswordPage(),
       },

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:m_diabetic_care/services/api_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:m_diabetic_care/model/obat.dart';
+import 'package:m_diabetic_care/services/notification_service.dart';
+import 'package:m_diabetic_care/viewmodel/obat_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class TambahObatPage extends StatefulWidget {
-  final Function(String nama, String waktu) onSimpan;
   final VoidCallback onBack;
 
-  const TambahObatPage({
-    super.key,
-    required this.onSimpan,
-    required this.onBack,
-  });
+  const TambahObatPage({super.key, required this.onBack});
 
   @override
   State<TambahObatPage> createState() => _TambahObatPageState();
@@ -42,44 +39,51 @@ class _TambahObatPageState extends State<TambahObatPage> {
     }
   }
 
-  void _simpanObat() async {
-  if (_namaController.text.isNotEmpty &&
-      _dosisController.text.isNotEmpty &&
-      _selectedTime != null &&
-      _selectedKeterangan != null &&
-      _selectedTipeObat != null) {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token') ?? '';
+  Future<void> _simpanObat() async {
+    if (_namaController.text.isNotEmpty &&
+        _dosisController.text.isNotEmpty &&
+        _selectedTime != null &&
+        _selectedKeterangan != null &&
+        _selectedTipeObat != null) {
+      final timeFormatted =
+          "${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}";
 
-    final timeFormatted =
-        "${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}";
+      final obatVM = context.read<ObatViewModel>();
 
-    final success = await ApiService.submitMedicationReminder(
-      token: token,
-      medicationName: _namaController.text,
-      dosage: _dosisController.text,
-      time: timeFormatted,
-      type: _selectedTipeObat!,
-      notes: _selectedKeterangan!,
-    );
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Obat berhasil disimpan")),
+      final newObat = Obat(
+        nama: _namaController.text,
+        dosage: _dosisController.text,
+        jadwal: timeFormatted,
+        tipe: _selectedTipeObat!,
+        keterangan: _selectedKeterangan!,
       );
-      widget.onBack();
+
+      final savedObat = await obatVM.addObat(newObat);
+      debugPrint("OBAT TERBARU DENGAN ID ${savedObat?.id!}");
+      // ✅ Tambahkan notifikasi reminder sesuai jam yang dipilih
+      if (savedObat != null) {
+        await NotificationService.scheduleNotificationFromString(
+          id: savedObat!.id!, // id unik
+          title: "Pengingat Minum Obat",
+          body: "${newObat.nama} - ${newObat.dosage} (${newObat.keterangan})",
+          time: newObat.jadwal,
+        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Obat berhasil disimpan")));
+        widget.onBack(); // balik ke halaman sebelumnya
+      }else{
+        
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Tidak dapat menyimpan obat")));
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Gagal menyimpan data obat")),
+        const SnackBar(content: Text("Lengkapi semua field terlebih dahulu.")),
       );
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Lengkapi semua field terlebih dahulu.")),
-    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {

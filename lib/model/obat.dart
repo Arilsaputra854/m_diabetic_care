@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Obat {
-  final int id;
+  final int? id;
   final String nama;
   final String jadwal;       // waktu minum
   final String keterangan;   // notes
@@ -14,7 +14,7 @@ class Obat {
   final Color? textColor;
 
   Obat({
-    required this.id,
+    this.id,
     required this.nama,
     required this.jadwal,
     required this.keterangan,
