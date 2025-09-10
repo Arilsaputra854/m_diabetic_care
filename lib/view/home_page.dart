@@ -470,21 +470,25 @@ class HomeContent extends StatelessWidget {
           childAspectRatio: 1.25,
           children: [
             _MenuTile(
+              color: Color(0xff3399E1), 
               icon: Icons.school,
               label: 'Edukasi',
               onTap: () => Navigator.pushNamed(context, '/edukasi'),
             ),
             _MenuTile(
+              color: Colors.orangeAccent, 
               icon: Icons.fastfood_sharp,
               label: 'Makanan',
               onTap: () => Navigator.pushNamed(context, '/food'),
             ),
             _MenuTile(
+              color: const Color(0xff33A1A1), 
               icon: Icons.monitor_weight,
               label: 'Index Masa Tubuh',
               onTap: () => Navigator.pushNamed(context, '/imt'),
             ),
             _MenuTile(
+              color: Color(0xff9B59B6), 
               icon: Icons.article,
               label: 'Berita',
               onTap: () => Navigator.pushNamed(context, '/berita'),
@@ -499,7 +503,7 @@ class HomeContent extends StatelessWidget {
             icon: const Icon(Icons.videogame_asset),
             label:  Text('Game Mitos & Fakta',style: TextStyle(fontSize: 16.sp),),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1D5C63),
+              backgroundColor: const Color(0xff3B4350),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -516,17 +520,19 @@ class _MenuTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color color; // Tambahkan warna background
 
   const _MenuTile({
     required this.icon,
     required this.label,
     required this.onTap,
+    required this.color, // tambahkan di constructor
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: color, // pakai warna yang dikirim
       borderRadius: BorderRadius.circular(16),
       elevation: 1,
       child: InkWell(
@@ -537,14 +543,15 @@ class _MenuTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 28, color: const Color(0xFF1D5C63)),
+              Icon(icon, size: 28, color: Colors.white), // ikon putih biar kontras
               const SizedBox(height: 8),
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style:  TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16.sp,
+                  color: Colors.white, // teks putih
                 ),
               ),
             ],
@@ -554,3 +561,4 @@ class _MenuTile extends StatelessWidget {
     );
   }
 }
+
