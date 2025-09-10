@@ -458,92 +458,112 @@ class HomeContent extends StatelessWidget {
   }
 
   Widget _buildQuickMenu(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.25,
-          children: [
-            _MenuTile(
-              color: Color(0xff3399E1), 
-              icon: Icons.school,
-              label: 'Edukasi',
-              onTap: () => Navigator.pushNamed(context, '/edukasi'),
-            ),
-            _MenuTile(
-              color: Colors.orangeAccent, 
-              icon: Icons.fastfood_sharp,
-              label: 'Makanan',
-              onTap: () => Navigator.pushNamed(context, '/food'),
-            ),
-            _MenuTile(
-              color: const Color(0xff33A1A1), 
-              icon: Icons.monitor_weight,
-              label: 'Index Masa Tubuh',
-              onTap: () => Navigator.pushNamed(context, '/imt'),
-            ),
-            _MenuTile(
-              color: Color(0xff9B59B6), 
-              icon: Icons.article,
-              label: 'Berita',
-              onTap: () => Navigator.pushNamed(context, '/berita'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 56,
-          child: ElevatedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/fakta-mitos'),
-            icon: const Icon(Icons.videogame_asset),
-            label:  Text('Game Mitos & Fakta',style: TextStyle(fontSize: 16.sp),),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff3B4350),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      GridView.count(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: 1, // kotak 1:1
+        children: [
+          _MenuTile(
+            color: const Color(0xff3399E1),
+            imagePath: "assets/icon/education_icon.png",
+            label: 'Edukasi',
+            onTap: () => Navigator.pushNamed(context, '/edukasi'),
+          ),
+          _MenuTile(
+            color: Colors.orangeAccent,
+            imagePath: "assets/icon/food_icon.png",
+            label: 'Makanan',
+            onTap: () => Navigator.pushNamed(context, '/food'),
+          ),
+          _MenuTile(
+            color: const Color(0xff33A1A1),
+            imagePath: "assets/icon/imt_icon.png",
+            label: 'Index Masa Tubuh',
+            onTap: () => Navigator.pushNamed(context, '/imt'),
+          ),
+          _MenuTile(
+            color: const Color(0xff9B59B6),
+            imagePath: "assets/icon/news_icon.png",
+            label: 'Berita',
+            onTap: () => Navigator.pushNamed(context, '/berita'),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      SizedBox(
+        height: 56,
+        child: ElevatedButton(
+          onPressed: () => Navigator.pushNamed(context, '/fakta-mitos'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xff3B4350),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                "assets/icon/pantun_icon.png", // tambahkan foto
+                height: 28,
+                width: 28,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Game Mitos & Fakta',
+                style: TextStyle(fontSize: 16.sp),
+              ),
+            ],
+          ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 }
 
 class _MenuTile extends StatelessWidget {
-  final IconData icon;
+  final String imagePath;
   final String label;
   final VoidCallback onTap;
-  final Color color; // Tambahkan warna background
+  final Color color;
 
   const _MenuTile({
-    required this.icon,
+    required this.imagePath,
     required this.label,
     required this.onTap,
-    required this.color, // tambahkan di constructor
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: color, // pakai warna yang dikirim
+      color: color,
       borderRadius: BorderRadius.circular(16),
       elevation: 1,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 28, color: Colors.white), // ikon putih biar kontras
+              Expanded( // gambar jadi fleksibel
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
                 label,
@@ -551,7 +571,7 @@ class _MenuTile extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16.sp,
-                  color: Colors.white, // teks putih
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -560,5 +580,5 @@ class _MenuTile extends StatelessWidget {
       ),
     );
   }
-}
 
+}

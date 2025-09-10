@@ -24,6 +24,7 @@ class EdukasiPage extends StatelessWidget {
             subtitle:
                 "Dapatkan informasi terbaru seputar diabetes dari sumber tepercaya.",
             buttonLabel: "Baca",
+            color: Colors.lightBlue.shade100,
             onTap: () {
               Navigator.push(
                 context,
@@ -39,16 +40,19 @@ class EdukasiPage extends StatelessWidget {
             subtitle:
                 "Ada banyak mitos dan fakta yang beredar seputar diabetes...",
             buttonLabel: "Mulai Kuis",
+            color: Colors.pink.shade100,
             onTap: () {
               Navigator.pushNamed(context, '/fakta-mitos');
             },
           ),
+
           _sectionTitle("Video"),
           _cardItem(
             icon: Icons.play_circle,
             title: "Video",
             subtitle: "Video seputar diabetes yang menjelaskan...",
             buttonLabel: "Tonton",
+            color: Colors.greenAccent.shade100,
             onTap: () {
               Navigator.push(
                 context,
@@ -64,6 +68,7 @@ class EdukasiPage extends StatelessWidget {
             subtitle:
                 "Poster edukasi tentang mitos dan fakta seputar diabetes...",
             buttonLabel: "Lihat",
+            color: Colors.amber.shade100,
             onTap: () {
               Navigator.push(
                 context,
@@ -91,10 +96,11 @@ class EdukasiPage extends StatelessWidget {
     required String title,
     required String subtitle,
     required String buttonLabel,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return Card(
-      color: Colors.lightBlue[50],
+      color: color,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: Padding(
@@ -102,7 +108,7 @@ class EdukasiPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 32, color: Colors.teal[700]),
+            Icon(icon, size: 32, color: Colors.teal[800]),
             const SizedBox(height: 8),
             Text(
               title,
