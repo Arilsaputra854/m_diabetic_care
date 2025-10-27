@@ -1,4 +1,4 @@
-package com.example.m_diabetic_care
+package com.unpam.m_diabetic_care
 
 import io.flutter.embedding.android.FlutterActivity
 

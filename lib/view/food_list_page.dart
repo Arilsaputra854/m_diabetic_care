@@ -124,12 +124,17 @@ class _FoodListPageState extends State<FoodListPage> {
                         vertical: 8,
                       ),
                       child: ListTile(
-                        title: Text(food.name),
+                        // FIX: Tambahkan '??' untuk memberi nilai default jika 'name' null
+                        title: Text(food.name ?? 'Nama Makanan T/A'),
+                        
+                        // FIX (Proaktif): Beri nilai default 0 jika calories/carbs null
                         subtitle: Text(
-                          '${food.calories.toInt()} kcal • ${food.carbs}g Karbohidrat',
+                          '${food.calories?.toInt() ?? 0} kcal • ${food.carbs ?? 0}g Karbohidrat',
                         ),
+                        
                         trailing: const Icon(Icons.add),
                         onTap: () async {
+                          // ... (Sisa kode onTap Anda tidak perlu diubah)
                           final prefs = await SharedPreferences.getInstance();
                           final token = prefs.getString('access_token');
 
@@ -153,7 +158,8 @@ class _FoodListPageState extends State<FoodListPage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  '${food.name} berhasil ditambahkan ke ${widget.mealType}',
+                                  // FIX: Pastikan food.name tidak null saat ditampilkan
+                                  '${food.name ?? 'Makanan'} berhasil ditambahkan ke ${widget.mealType}',
                                 ),
                               ),
                             );
@@ -161,7 +167,9 @@ class _FoodListPageState extends State<FoodListPage> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Gagal menambahkan ${food.name}'),
+                                content: Text(
+                                  'Gagal menambahkan ${food.name ?? 'makanan'}',
+                                ),
                               ),
                             );
                           }

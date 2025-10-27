@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async'; // Untuk Timeout
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:m_diabetic_care/model/educational_content.dart';
@@ -11,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static const String baseUrl = 'http://148.230.97.120/diabetic/api';
+  static const Duration timeoutDuration = Duration(seconds: 15);
 
   /// 🔐 REGISTER
   static Future<bool> registerUser({
@@ -26,7 +28,6 @@ class ApiService {
     required bool familyDMHistory,
   }) async {
     final url = Uri.parse('$baseUrl/auth/register');
-
     final body = {
       "fullname": name,
       "email": email,
@@ -41,7 +42,7 @@ class ApiService {
       "role": "user",
     };
 
-    debugPrint('POST $url');
+    debugPrint('🚀 POST $url');
     debugPrint('Body: ${jsonEncode(body)}');
 
     try {
@@ -51,9 +52,9 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
       return response.statusCode == 201;
     } catch (e) {
       debugPrint('❌ Error saat register: $e');
@@ -66,17 +67,19 @@ class ApiService {
     final url = Uri.parse('$baseUrl/auth/forgot-password/send-otp');
     final body = {'email': email};
 
-    debugPrint('POST $url');
+    debugPrint('🚀 POST $url');
     debugPrint('Body: ${jsonEncode(body)}');
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('❌ Error send OTP: $e');
@@ -103,19 +106,23 @@ class ApiService {
       "calories": food.calories,
     };
 
+    debugPrint('🚀 POST $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+    debugPrint('Body: ${jsonEncode(body)}');
+
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
 
-      debugPrint('POST /meal-inputs -> ${response.statusCode}');
-      debugPrint(response.body);
-
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
       return response.statusCode == 201;
     } catch (e) {
       debugPrint('❌ Error submitMealInput: $e');
@@ -136,14 +143,19 @@ class ApiService {
       "reset_token": resetToken,
     };
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+    debugPrint('🚀 POST $url');
+    debugPrint('Body: ${jsonEncode(body)}');
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('❌ Error saat reset password: $e');
@@ -159,14 +171,19 @@ class ApiService {
     final url = Uri.parse('$baseUrl/auth/forgot-password/verify-otp');
     final body = {'email': email, 'otp': otp};
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+    debugPrint('🚀 POST $url');
+    debugPrint('Body: ${jsonEncode(body)}');
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body); // contains reset_token
@@ -187,17 +204,19 @@ class ApiService {
     final url = Uri.parse('$baseUrl/auth/login');
     final body = {'email': emailOrPhone.toLowerCase(), 'password': password};
 
-    debugPrint('POST $url');
+    debugPrint('🚀 POST $url');
     debugPrint('Body: ${jsonEncode(body)}');
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -211,20 +230,25 @@ class ApiService {
     }
   }
 
-  /// 🍱 GET FOOD
+  /// 🍱 GET FOOD (List)
   static Future<List<Map<String, dynamic>>> fetchFoodList() async {
     final url = Uri.parse('$baseUrl/food');
-    debugPrint('GET $url');
+    debugPrint('🚀 GET $url');
 
-    final response = await http.get(url);
-    debugPrint('Response [${response.statusCode}]: ${response.body}');
+    try {
+      final response = await http.get(url).timeout(timeoutDuration);
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.cast<Map<String, dynamic>>();
-    } else {
-      debugPrint('Gagal mengambil data makanan: ${response.reasonPhrase}');
-      throw Exception('Gagal mengambil data makanan');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        debugPrint('Gagal mengambil data makanan: ${response.reasonPhrase}');
+        throw Exception('Gagal mengambil data makanan');
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetchFoodList: $e');
+      rethrow;
     }
   }
 
@@ -252,17 +276,23 @@ class ApiService {
       'category': category,
     };
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
+    debugPrint('🚀 POST $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+    debugPrint('Body: ${jsonEncode(body)}');
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
       return response.statusCode == 201;
     } catch (e) {
       debugPrint('❌ Error create food: $e');
@@ -275,8 +305,8 @@ class ApiService {
     String token,
   ) async {
     final url = Uri.parse('$baseUrl/fact-myths');
-    debugPrint('Token $token');
-    debugPrint('GET $url');
+    debugPrint('🚀 GET $url');
+    debugPrint('Headers: Authorization: Bearer $token');
 
     try {
       final response = await http.get(
@@ -285,9 +315,9 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
@@ -302,10 +332,14 @@ class ApiService {
     }
   }
 
+  /// 📚 GET Educational Videos
   static Future<List<EducationalContent>> fetchEducationalVideos(
     String token,
   ) async {
     final url = Uri.parse('$baseUrl/educational-contents');
+    debugPrint('🚀 GET $url (Type: Video)');
+    debugPrint('Headers: Authorization: Bearer $token');
+
     try {
       final response = await http.get(
         url,
@@ -313,9 +347,9 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
@@ -337,6 +371,8 @@ class ApiService {
     String token,
   ) async {
     final url = Uri.parse('$baseUrl/educational-contents');
+    debugPrint('🚀 GET $url (Type: Poster)');
+    debugPrint('Headers: Authorization: Bearer $token');
     try {
       final response = await http.get(
         url,
@@ -344,9 +380,9 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
@@ -368,6 +404,8 @@ class ApiService {
     String token,
   ) async {
     final url = Uri.parse('$baseUrl/educational-contents');
+    debugPrint('🚀 GET $url (Type: Berita)');
+    debugPrint('Headers: Authorization: Bearer $token');
     try {
       final response = await http.get(
         url,
@@ -375,9 +413,9 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
@@ -396,19 +434,30 @@ class ApiService {
 
   /// 📌 GET Foods
   static Future<List<FoodModel>> fetchFoods(String token) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/foods'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    final url = Uri.parse('$baseUrl/foods');
+    debugPrint('🚀 GET $url');
+    debugPrint('Headers: Authorization: Bearer $token');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => FoodModel.fromJson(json)).toList();
-    } else {
-      throw Exception('Gagal memuat data makanan');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => FoodModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Gagal memuat data makanan');
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetchFoods: $e');
+      rethrow;
     }
   }
 
@@ -420,20 +469,23 @@ class ApiService {
     final url = Uri.parse('$baseUrl/user/profile');
     final body = {'bmi': bmi.toStringAsFixed(1)};
 
-    debugPrint('PUT $url');
+    debugPrint('🚀 PUT $url');
+    debugPrint('Headers: Authorization: Bearer $token');
     debugPrint('Body: ${jsonEncode(body)}');
 
     try {
-      final response = await http.put(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
+      final response = await http
+          .put(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
 
-      debugPrint('Response [${response.statusCode}]: ${response.body}');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('❌ Error update BMI: $e');
@@ -441,232 +493,358 @@ class ApiService {
     }
   }
 
+  /// 📌 GET Meal Inputs
   static Future<List<MealInputModel>> fetchMealInputs(String token) async {
     final url = Uri.parse('$baseUrl/meal-inputs');
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    debugPrint('🚀 GET $url');
+    debugPrint('Headers: Authorization: Bearer $token');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => MealInputModel.fromJson(e)).toList();
-    } else {
-      throw Exception('Gagal mengambil meal inputs');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => MealInputModel.fromJson(e)).toList();
+      } else {
+        throw Exception('Gagal mengambil meal inputs');
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetchMealInputs: $e');
+      rethrow;
     }
   }
 
+  /// 💊 POST Medication Reminder
   static Future<Obat?> submitMedicationReminder({
-  required String token,
-  required String medicationName,
-  required String dosage,
-  required String time,
-  required String type,
-  required String notes,
-}) async {
-  final url = Uri.parse('$baseUrl/medication-reminders');
+    required String token,
+    required String medicationName,
+    required String dosage,
+    required String time,
+    required String type,
+    required String notes,
+  }) async {
+    final url = Uri.parse('$baseUrl/medication-reminders');
+    final body = {
+      "medication_name": medicationName,
+      "dosage": dosage,
+      "time": time,
+      "type": type,
+      "notes": notes,
+    };
 
-  final body = {
-    "medication_name": medicationName,
-    "dosage": dosage,
-    "time": time,
-    "type": type,
-    "notes": notes,
-  };
+    debugPrint('🚀 POST $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+    debugPrint('Body: ${jsonEncode(body)}');
 
-  debugPrint('POST /medication-reminders');
-  debugPrint('Body: ${jsonEncode(body)}');
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
 
-    debugPrint('Response [${response.statusCode}]: ${response.body}');
-
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-
-      return Obat.fromJson(data);
-
-    } else {
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        return Obat.fromJson(data);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      debugPrint('❌ Error submitMedicationReminder: $e');
       return null;
     }
-  } catch (e) {
-    debugPrint('❌ Error submitMedicationReminder: $e');
-    return null;
   }
-}
 
+  /// 💊 GET Medication Reminders
+  static Future<List<Obat>> getMedicationReminders(String token) async {
+    final url = Uri.parse('$baseUrl/medication-reminders');
+    debugPrint('🚀 GET $url');
+    debugPrint('Headers: Authorization: Bearer $token');
 
-  static Future<List<ExerciseReminder>> getExerciseReminders(
-    String token,
-  ) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/exercise-reminders'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+      ).timeout(timeoutDuration);
 
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((json) => ExerciseReminder.fromJson(json)).toList();
-    } else {
-      throw Exception('Gagal mengambil data latihan');
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return (data as List).map((json) => Obat.fromJson(json)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ Error getMedicationReminders: $e');
+      return [];
     }
   }
 
-  static Future<ExerciseReminder> createExerciseReminder(
-    String token,
-    Map<String, dynamic> body,
-  ) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/exercise-reminders'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode == 201) {
-      final json = jsonDecode(response.body);
-      final data = json['data']; // ambil objek "data"
-      return ExerciseReminder.fromJson(data); // parsing hanya "data"
-    } else {
-      throw Exception('Gagal membuat latihan: ${response.body}');
-    }
-  }
-
-  // DELETE
-  static Future<void> deleteExerciseReminder(String token, int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/exercise-reminders/$id'),
-      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
-    );
-
-    if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Gagal menghapus latihan');
-    }
-  }
-
-  // UPDATE
-  static Future<void> updateExerciseReminder(
-    String token,
-    int id,
-    Map<String, dynamic> body,
-  ) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/exercise-reminders/$id'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Gagal memperbarui latihan');
-    }
-  }
-
+  /// 💊 PUT Medication Reminder
   static Future<Obat> updateMedicationReminder(String token, Obat obat) async {
-  final response = await http.put(
-    Uri.parse('$baseUrl/medication-reminders/${obat.id}'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
+    final url = Uri.parse('$baseUrl/medication-reminders/${obat.id}');
+    final body = {
       'medication_name': obat.nama,
       'dosage': obat.dosage,
       'time': obat.jadwal,
       'type': obat.tipe,
       'notes': obat.keterangan,
-    }),
-  );
+    };
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
+    debugPrint('🚀 PUT $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+    debugPrint('Body: ${jsonEncode(body)}');
 
-    // pastikan struktur JSON sesuai API kamu
-    return Obat.fromJson(data['data']); 
-  } else {
-    throw Exception('Gagal mengedit obat: ${response.body}');
+    try {
+      final response = await http
+          .put(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return Obat.fromJson(data['data']); // Sesuaikan dgn struktur JSON API
+      } else {
+        throw Exception('Gagal mengedit obat: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error updateMedicationReminder: $e');
+      rethrow;
+    }
   }
-}
 
+  /// 💊 DELETE Medication Reminder
   static Future<void> deleteMedicationReminder(int id) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
+    final url = Uri.parse('$baseUrl/medication-reminders/$id');
 
-    final response = await http.delete(
-      Uri.parse('$baseUrl/medication-reminders/$id'),
-      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
-    );
+    debugPrint('🚀 DELETE $url');
+    debugPrint('Headers: Authorization: Bearer $token');
 
-    if (response.statusCode != 200) {
-      throw Exception('Gagal menghapus obat');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Gagal menghapus obat');
+      }
+    } catch (e) {
+      debugPrint('❌ Error deleteMedicationReminder: $e');
+      rethrow;
     }
   }
 
-  static Future<List<Obat>> getMedicationReminders(String token) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/medication-reminders'),
-      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
-    );
+  /// 🏃‍♂️ GET Exercise Reminders
+  static Future<List<ExerciseReminder>> getExerciseReminders(
+    String token,
+  ) async {
+    final url = Uri.parse('$baseUrl/exercise-reminders');
+    debugPrint('🚀 GET $url');
+    debugPrint('Headers: Authorization: Bearer $token');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      // Ubah List<Map<String, dynamic>> menjadi List<Obat>
-      return (data as List).map((json) => Obat.fromJson(json)).toList();
-    } else {
-      return [];
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        return data.map((json) => ExerciseReminder.fromJson(json)).toList();
+      } else {
+        throw Exception('Gagal mengambil data latihan');
+      }
+    } catch (e) {
+      debugPrint('❌ Error getExerciseReminders: $e');
+      rethrow;
     }
   }
 
+  /// 🏃‍♂️ POST Exercise Reminder
+  static Future<ExerciseReminder> createExerciseReminder(
+    String token,
+    Map<String, dynamic> body,
+  ) async {
+    final url = Uri.parse('$baseUrl/exercise-reminders');
+    debugPrint('🚀 POST $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+    debugPrint('Body: ${jsonEncode(body)}');
+
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 201) {
+        final json = jsonDecode(response.body);
+        final data = json['data']; // ambil objek "data"
+        return ExerciseReminder.fromJson(data); // parsing hanya "data"
+      } else {
+        throw Exception('Gagal membuat latihan: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error createExerciseReminder: $e');
+      rethrow;
+    }
+  }
+
+  /// 🏃‍♂️ DELETE Exercise Reminder
+  static Future<void> deleteExerciseReminder(String token, int id) async {
+    final url = Uri.parse('$baseUrl/exercise-reminders/$id');
+    debugPrint('🚀 DELETE $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Gagal menghapus latihan');
+      }
+    } catch (e) {
+      debugPrint('❌ Error deleteExerciseReminder: $e');
+      rethrow;
+    }
+  }
+
+  /// 🏃‍♂️ UPDATE Exercise Reminder
+  static Future<void> updateExerciseReminder(
+    String token,
+    int id,
+    Map<String, dynamic> body,
+  ) async {
+    final url = Uri.parse('$baseUrl/exercise-reminders/$id');
+    debugPrint('🚀 PUT $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+    debugPrint('Body: ${jsonEncode(body)}');
+
+    try {
+      final response = await http
+          .put(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode != 200) {
+        throw Exception('Gagal memperbarui latihan');
+      }
+    } catch (e) {
+      debugPrint('❌ Error updateExerciseReminder: $e');
+      rethrow;
+    }
+  }
+
+  /// 👤 GET User Profile
   static Future<Map<String, dynamic>> getUserProfile(String token) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/user/profile'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    final url = Uri.parse('$baseUrl/user/profile');
+    debugPrint('🚀 GET $url');
+    debugPrint('Headers: Authorization: Bearer $token');
 
-    debugPrint('Response User Profile: ${response.body}');
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Gagal mengambil data profil');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(timeoutDuration);
+
+      debugPrint(
+          '✅ Response User Profile [${response.statusCode}]: ${response.body}');
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Gagal mengambil data profil');
+      }
+    } catch (e) {
+      debugPrint('❌ Error getUserProfile: $e');
+      rethrow;
     }
   }
 
+  /// 👤 PUT User Profile
   static Future<bool> updateUserProfile(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
+    final url = Uri.parse('${baseUrl}/user/profile');
 
-    final response = await http.put(
-      Uri.parse('${baseUrl}/user/profile'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(data),
-    );
+    debugPrint('🚀 PUT $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+    debugPrint('Body: ${jsonEncode(data)}');
 
-    return response.statusCode == 200;
+    try {
+      final response = await http
+          .put(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode(data),
+          )
+          .timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('❌ Error updateUserProfile: $e');
+      return false;
+    }
   }
-
 }
 
+// Helper Function
 String formatDateWithOffset(DateTime dateTime) {
   final duration = dateTime.timeZoneOffset;
   final hours = duration.inHours.abs().toString().padLeft(2, '0');
@@ -674,5 +852,6 @@ String formatDateWithOffset(DateTime dateTime) {
   final sign = duration.isNegative ? '-' : '+';
   final offset = '$sign$hours:$minutes';
 
+  // Format: 2023-10-27T10:00:00+07:00
   return dateTime.toIso8601String().split('.').first + offset;
 }
