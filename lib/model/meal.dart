@@ -1,10 +1,12 @@
 class MealInputModel {
+  final int id;
   final String mealType;
   final String manualName;
   final double calories;
   final String time; // Tambahkan ini
 
   MealInputModel({
+    required this.id,
     required this.mealType,
     required this.manualName,
     required this.calories,
@@ -13,6 +15,7 @@ class MealInputModel {
 
   factory MealInputModel.fromJson(Map<String, dynamic> json) {
     return MealInputModel(
+      id: json['id'],
       mealType: json['meal_type'],
       manualName: json['manual_name'],
       calories: (json['calories'] as num).toDouble(),

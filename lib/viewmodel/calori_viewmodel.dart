@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:m_diabetic_care/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class KaloriViewModel extends ChangeNotifier {
@@ -41,5 +42,15 @@ class KaloriViewModel extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('today_calories', _totalCalories);
     debugPrint('[KaloriViewModel] resetKalori: total reset to $_totalCalories');
+  }
+
+  Future<bool> deleteFood(String token, int foodId) async {
+    try {
+      final success = await ApiService.deleteFood(token, foodId);
+      return success;
+    } catch (e) {
+      debugPrint('Error deleting food: $e');
+      return false;
+    }
   }
 }

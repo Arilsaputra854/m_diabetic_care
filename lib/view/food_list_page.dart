@@ -132,48 +132,20 @@ class _FoodListPageState extends State<FoodListPage> {
                           '${food.calories?.toInt() ?? 0} kcal • ${food.carbs ?? 0}g Karbohidrat',
                         ),
                         
-                        trailing: const Icon(Icons.add),
-                        onTap: () async {
-                          // ... (Sisa kode onTap Anda tidak perlu diubah)
-                          final prefs = await SharedPreferences.getInstance();
-                          final token = prefs.getString('access_token');
-
-                          if (token == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Token tidak ditemukan'),
-                              ),
-                            );
-                            return;
-                          }
-                          final mealType = mapMealType(widget.mealType);
-
-                          final success = await ApiService.submitMealInput(
-                            token: token,
-                            mealType: mealType,
-                            food: food,
-                          );
-
-                          if (success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  // FIX: Pastikan food.name tidak null saat ditampilkan
-                                  '${food.name ?? 'Makanan'} berhasil ditambahkan ke ${widget.mealType}',
-                                ),
-                              ),
-                            );
-                            Navigator.pop(context);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Gagal menambahkan ${food.name ?? 'makanan'}',
-                                ),
-                              ),
-                            );
-                          }
-                        },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () => _addFoodToMeal(food),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _showDeleteConfirmationDialog(food),
+                            ),
+                          ],
+                        ),
+                        onTap: () => _addFoodToMeal(food),
                       ),
                     );
                   },
@@ -184,6 +156,105 @@ class _FoodListPageState extends State<FoodListPage> {
         ],
       ),
     );
+  }
+
+  void _addFoodToMeal(FoodModel food) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Token tidak ditemukan'),
+        ),
+      );
+      return;
+    }
+    final mealType = mapMealType(widget.mealType);
+
+    final success = await ApiService.submitMealInput(
+      token: token,
+      mealType: mealType,
+      food: food,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${food.name ?? 'Makanan'} berhasil ditambahkan ke ${widget.mealType}',
+          ),
+        ),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Gagal menambahkan ${food.name ?? 'makanan'}',
+          ),
+        ),
+      );
+    }
+  }
+
+  void _showDeleteConfirmationDialog(FoodModel food) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Apakah Anda yakin ingin menghapus ${food.name ?? 'makanan ini'}?'),
+        actions: [
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          ElevatedButton(
+            child: const Text('Hapus'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _deleteFood(food);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteFood(FoodModel food) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Token tidak ditemukan')),
+      );
+      return;
+    }
+
+    if (food.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID makanan tidak valid')),
+      );
+      return;
+    }
+
+    final success = await ApiService.deleteFood(token, food.id!);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${food.name ?? 'Makanan'} berhasil dihapus'),
+        ),
+      );
+      setState(() {
+        _foodsFuture = _loadFoods(); // refresh
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menghapus makanan')),
+      );
+    }
   }
 
   void _showAddFoodDialog(BuildContext context) {

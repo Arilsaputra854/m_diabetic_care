@@ -300,6 +300,52 @@ class ApiService {
     }
   }
 
+  /// 🍱 DELETE FOOD
+  static Future<bool> deleteFood(String token, int foodId) async {
+    final url = Uri.parse('$baseUrl/foods/$foodId');
+    debugPrint('🚀 DELETE $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      ).timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      debugPrint('❌ Error deleteFood: $e');
+      return false;
+    }
+  }
+
+  /// 🍱 DELETE Meal Input
+  static Future<bool> deleteMealInput(String token, int mealInputId) async {
+    final url = Uri.parse('$baseUrl/meal-inputs/$mealInputId');
+    debugPrint('🚀 DELETE $url');
+    debugPrint('Headers: Authorization: Bearer $token');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      ).timeout(timeoutDuration);
+
+      debugPrint('✅ Response [${response.statusCode}]: ${response.body}');
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      debugPrint('❌ Error deleteMealInput: $e');
+      return false;
+    }
+  }
+
   /// 📚 GET Myths & Facts (with Auth Header)
   static Future<List<Map<String, dynamic>>> fetchMythsAndFacts(
     String token,

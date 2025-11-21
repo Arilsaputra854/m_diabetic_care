@@ -260,7 +260,10 @@ class _MakanPageState extends State<MakanPage> {
               contentPadding: EdgeInsets.zero,
               title: Text(item.manualName),
               subtitle: Text('${item.calories.toStringAsFixed(0)} kkal'),
-              trailing: const Icon(Icons.check_circle, color: Colors.green),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _showDeleteConfirmationDialog(item),
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -296,9 +299,60 @@ class _MakanPageState extends State<MakanPage> {
 
   void _updateKalori() async {
     context.read<KaloriViewModel>().setKalori(
-      _calculateTotalCalories(),
-      targetCalories ?? 2500,
+          _calculateTotalCalories(),
+          targetCalories ?? 2500,
+        );
+  }
+
+  void _showDeleteConfirmationDialog(MealInputModel meal) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Apakah Anda yakin ingin menghapus ${meal.manualName}?'),
+        actions: [
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          ElevatedButton(
+            child: const Text('Hapus'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _deleteMealInput(meal);
+            },
+          ),
+        ],
+      ),
     );
+  }
+
+  void _deleteMealInput(MealInputModel meal) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Token tidak ditemukan')),
+      );
+      return;
+    }
+
+    final success = await ApiService.deleteMealInput(token, meal.id);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${meal.manualName} berhasil dihapus'),
+        ),
+      );
+      await _fetchMealInputs();
+      _updateKalori();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menghapus makanan')),
+      );
+    }
   }
 }
 
